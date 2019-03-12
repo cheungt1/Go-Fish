@@ -11,6 +11,6 @@ By using Java, we will create two objects, Card and Player, that will keep track
 ## Plan
 [to be filled in]
 ## Team Members
-- Ruiming Zeng: [position]
-- Z Yang: [position]
-- Martin Cheung: [position]
+- Ruiming Zeng: GUI Design
+- Z Yang: Code Clean up/Back-End Coding
+- Martin Cheung: Back-End Coding
