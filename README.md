@@ -11,7 +11,7 @@ By using Java, we will create two objects, Card and Player, that will keep track
 2. Functioning game of Go Fish with Client-Server implementation
 3. Documentation 
 ## Plan
-* Week 1
+## * Week 1
 ### Last Week (Spring Break)
 1. Made Git Repository
 
