@@ -12,11 +12,11 @@ By using Java, we will create two objects, Card and Player, that will keep track
 3. Documentation 
 ## Plan
 
-### *Last Week (Spring Break)
+### Last Week (Spring Break)
 1. Made Git Repository
 2. Came up with a general design
 
-### *Week 1 (March 11 - March 15)
+### Week 1 (March 11 - March 15)
 **Will**
 1. Explore the rules of Go Fish and create an outline of elements that will be in it
 2. Create a final design for GUI and begin GUI coding
