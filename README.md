@@ -13,19 +13,19 @@ By using Java, we will create two objects, Card and Player, that will keep track
 ## Plan
 
 ### Last Week (Spring Break)
-1. Made Git Repository
-2. Came up with a general design
+  1. Made Git Repository
+  2. Came up with a general design
 
 ### Week 1 (March 11 - March 15)
-**Will**
-1. Explore the rules of Go Fish and create an outline of elements that will be in it
-2. Create a final design for GUI and begin GUI coding
+  **Will**
+  1. Explore the rules of Go Fish and create an outline of elements that will be in it
+  2. Create a final design for GUI and begin GUI coding
 
-**Did**
-1. Created a Java project
+  **Did**
+  1. Created a Java project
 
-**Blocks/Challenges**
-1. None as of yet
+  **Blocks/Challenges** 
+  1. None as of yet
 
 ## Team Members
 - Ruiming Zeng: GUI Design
