@@ -38,6 +38,8 @@ public class GUI extends Application
 	@Override
 	public void start(Stage primaryStage) throws Exception
 	{
+		startGameGUI();
+		
 		//Pane initialization
 		StackPane overallPane = new StackPane();
 		StackPane pInteraction = new StackPane();
@@ -57,6 +59,7 @@ public class GUI extends Application
 		
 		//Button initialization
 		Button btConfirmAction = new Button("Ask for that card");
+		Button btQuit = new Button("Leave Game");
 		
 		//RadioButton initialization
 		RadioButton rbPlayer2 = new RadioButton("Player 2");
@@ -106,6 +109,57 @@ public class GUI extends Application
 	    });
 		//End of code from outside help
 		
+		//Setting up btQuit functionality, ending game
+		btQuit.setOnAction(e -> 
+		{
+			//Create temporary stage
+			Stage confirmStage = new Stage();
+			
+			//Create a StackPane for the temporary stage
+			StackPane pConfirm = new StackPane();
+			
+			//Create a buttons for user decision
+			Button btYes = new Button("Yes, I want to leave");
+			Button btNo = new Button("No, let me back in the game");
+			
+			//Creates a label to prompt a decision from user
+			Label lblConfirm = new Label("Do you want to leave this game?");
+			
+			//Sets font size for all components
+			lblConfirm.setFont(f18);
+			btYes.setFont(f16);
+			btNo.setFont(f16);
+			
+			//Creates actions for the buttons
+			btYes.setOnAction(f ->
+			{
+				confirmStage.close();
+				primaryStage.close();
+			});
+			
+			btNo.setOnAction(f ->
+			{
+				confirmStage.close();
+			});
+			
+			//Adds all components onto the pane, pConfirm
+			pConfirm.getChildren().addAll(lblConfirm, btYes, btNo);
+			
+			//Translates the components
+			pConfirm.setAlignment(Pos.CENTER);
+			translate(-128, 0, btYes);
+			translate(128, 0, btNo);
+			translate(0, -64, lblConfirm);
+			
+			
+			//Creates a scene for the stage, confirmStage, and show it
+			Scene confirmScene = new Scene(pConfirm, 512, 256);
+			confirmStage.setScene(confirmScene);
+			confirmStage.setTitle("Are you sure you wanna quit?");
+			confirmStage.show();
+			
+		});
+		
 		//Setting font sizes
 		lblPlayerSection.setFont(f20);
 		lblCardSection.setFont(f20);
@@ -113,17 +167,18 @@ public class GUI extends Application
 		rbPlayer3.setFont(f18);
 		rbPlayer4.setFont(f18);
 		btConfirmAction.setFont(f18);
+		btQuit.setFont(f18);
 		lblRecentAction.setFont(f16);
 		lblPlayer2Name.setFont(f16);
 		lblPlayer3Name.setFont(f16);
 		lblPlayer4Name.setFont(f16);
 		
 		//Adding all components into panes
-		pInteraction.getChildren().addAll(lblPlayerSection, lblCardSection, rbPlayer2, rbPlayer3, rbPlayer4, cbCardValues, btConfirmAction);
+		pInteraction.getChildren().addAll(lblPlayerSection, lblCardSection, rbPlayer2, rbPlayer3, rbPlayer4, cbCardValues, btConfirmAction, btQuit);
 		pVisual.getChildren().addAll(background, lblPlayer2Name, lblPlayer3Name, lblPlayer4Name);
 		pTextLog.getChildren().addAll(lblRecentAction);
 		
-		overallPane.getChildren().addAll(pInteraction, pVisual, pTextLog);
+		overallPane.getChildren().addAll(pVisual, pTextLog, pInteraction);
 		
 		//pVisual.setBackground(new Background(new BackgroundFill(Color.rgb(125, 0, 0), CornerRadii.EMPTY, Insets.EMPTY)));
 		
@@ -140,6 +195,7 @@ public class GUI extends Application
 		translate(-20, 175, lblCardSection);
 		translate(-54.5, 210, cbCardValues);
 		translate(-25, 350, btConfirmAction);
+		translate(-37.5, 400, btQuit);
 		
 		//pVisual Alignment
 		translate(-110, -190, lblPlayer2Name);
@@ -163,6 +219,13 @@ public class GUI extends Application
 		primaryStage.setScene(scene);
 		primaryStage.setTitle("Go Fish!");
 		primaryStage.show();
+	}
+	
+	public void startGameGUI()
+	{
+		Stage startStage = new Stage();
+		
+		Scene startScene = new Scene();
 	}
 	
 	public void translate(double x, double y, Node node)
