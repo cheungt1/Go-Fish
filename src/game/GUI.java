@@ -81,9 +81,9 @@ public class GUI extends Application
 	        protected void updateItem(String item, boolean empty) {
 	        	super.updateItem(item, empty); 
 	            if(empty || item==null){
-	                setStyle("-fx-font-size:15");
+	                setStyle("-fx-font-size:16");
 	            } else {
-	                setStyle("-fx-font-size:15");
+	                setStyle("-fx-font-size:16");
 	                setText(item.toString());
 	            }
 	        }
@@ -96,9 +96,9 @@ public class GUI extends Application
 	        protected void updateItem(String item, boolean empty) {
 	            super.updateItem(item, empty); 
 	            if(empty || item==null){
-	                setStyle("-fx-font-size:15");
+	                setStyle("-fx-font-size:16");
 	            } else {
-	                setStyle("-fx-font-size:15");
+	                setStyle("-fx-font-size:16");
 	                setText(item.toString());
 	            }
 	        }
@@ -142,15 +142,15 @@ public class GUI extends Application
 		translate(-25, 350, btConfirmAction);
 		
 		//pVisual Alignment
-		translate(-100, -210, lblPlayer2Name);
+		translate(-110, -190, lblPlayer2Name);
 		lblPlayer3Name.setRotate(90);
-		translate(150, 0, lblPlayer3Name);
+		translate(237.5, 0, lblPlayer3Name);
 		lblPlayer4Name.setRotate(270);
-		translate(-350, 0, lblPlayer4Name);
+		translate(-465.5, 0, lblPlayer4Name);
 		
 		//pVisual background set-up
-		background.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\Desktop\\tableTexture.jpg")));
-		translate(-100, -30, background);
+		background.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\Desktop\\tableTextureTest.jpg")));
+		translate(-112.5, 15, background);
 		
 		//pVisual text background set-up
 		lblPlayer2Name.setBackground(new Background(new BackgroundFill(Color.rgb(255, 255, 255), CornerRadii.EMPTY, Insets.EMPTY)));
