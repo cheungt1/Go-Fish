@@ -32,6 +32,7 @@ By using Java, we will create two objects, Card and Player, that will keep track
   **Will**
   1. Continue with creating the Server/Client class
   2. Testing for error/bugs of the game
+  
   **Did**
   1. Designed and coded a basic GUI for the game, coded simple actions for buttons
   2. Finished with most, if not all, methods required for Go-Fish
