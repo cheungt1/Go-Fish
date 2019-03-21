@@ -10,10 +10,7 @@ public class Player {
 	public Player(String name) {
 		this.name = name;
 		Game.join();
-		System.out.println(name + " is joined");
-		
 		this.hand = Game.createHand();
-		System.out.println("their hand is created");
 		
 	}
 	

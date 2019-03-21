@@ -60,11 +60,10 @@ public class Game {
 	public static LinkedList<Integer> createHand() {
 		LinkedList<Integer> n = new LinkedList<>();
 		
-		for(int i = deckPos; i < 5; i++) {
-			n.add(deck[i]);
+		for(int i = 0; i < 5; i++) {
+			n.add(deck[deckPos]);
+			deckPos++;
 		}
-		
-		deckPos += 5;	
 		
 		return n;
 	}

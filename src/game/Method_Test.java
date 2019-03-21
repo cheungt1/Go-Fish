@@ -16,7 +16,6 @@ public class Method_Test {
 		System.out.println(b.toString()+"\n");
 		for(int i = 0; i < bHand.length; i++) {
 			System.out.println(bHand[i]);
-			System.out.println("test");
 		}
 	}
 }
