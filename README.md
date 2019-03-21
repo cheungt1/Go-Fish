@@ -30,8 +30,12 @@ By using Java, we will create two objects, Card and Player, that will keep track
 
 ### Week 2 (March 18 - March 24)
   **Will**
+  1.
   **Did**
+  1. Designed and coded a basic GUI for the game, coded simple actions for buttons
+  
   **Blocks/Challenges**
+  1. ~~Aligning separate panes within a larger pane~~ (Fixed)
 
 ## Team Members
 - Ruiming Zeng: GUI Design
