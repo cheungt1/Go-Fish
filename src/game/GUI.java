@@ -18,6 +18,8 @@ public class GUI extends Application
 	Stage playingStage = new Stage();
 	Stage startStage = new Stage();
 	
+	static TextField tfUserName = new TextField();
+	
 	//Creates Font objects to reference throughout formatting GUI components
 	Font f16 = new Font("System", 16);
 	Font f18 = new Font("System", 18);
@@ -238,8 +240,6 @@ public class GUI extends Application
 		Label lblMessage1 = new Label("Welcome!");
 		Label lblMessage2 = new Label("Please Enter Your Name!");
 		
-		TextField tfUserName = new TextField();
-		
 		Button btConfirm = new Button("Play the Game!");
 		
 		//Setting font sizes
@@ -324,5 +324,10 @@ public class GUI extends Application
 	{
 		userName = newName;
 		lblUserName.setText(newName);
+	}
+	
+	public static String getUserName()
+	{
+		return tfUserName.getText();
 	}
 }
