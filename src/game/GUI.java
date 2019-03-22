@@ -205,6 +205,11 @@ public class GUI extends Application
 		lblPlayer4Name.setRotate(270);
 		translate(-465.5, 0, lblPlayer4Name);
 		
+		/*
+		 * one possible color for a background instead of white
+		 * pVisual.setBackground(new Background(new BackgroundFill(Color.rgb(243, 229, 192), CornerRadii.EMPTY, Insets.EMPTY))); 
+		 */
+		
 		//pVisual background set-up
 		background.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\GUIGraphic\\tableTexture.jpg")));
 		translate(-112.5, 15, background);
