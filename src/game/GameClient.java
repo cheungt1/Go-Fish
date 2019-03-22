@@ -8,6 +8,8 @@ public class GameClient {
 	private final static int port = 0;
 	
 	public static void main(String[] args) {
+		Player you = new Player();
+		
 		try {
 			Socket socket = new Socket(serverHostIP, port);
 			
