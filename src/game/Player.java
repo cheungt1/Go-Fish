@@ -129,4 +129,14 @@ public class Player {
     public int getPlayerNum() {
         return playerNum;
     }
+    
+    /**
+     * The toString of the player class would display the 
+     * number of points this player has.
+     * @return return the toString of this player
+     */
+    @Override 
+    public String toString() {
+    	return String.format("%s has %d points", name, score);
+    }
 }
