@@ -80,6 +80,7 @@ public class Player {
             if (current == next) { // if current element is the same as next
                 // increment count
                 if (++count == 4) { // four-of-a-kind is found
+                	Game.totalMatched(); // signal there is a match to the game class
                     // remove 4 elements
                     for (int i = 0; i < 4; i++) {
                         itr.previous();

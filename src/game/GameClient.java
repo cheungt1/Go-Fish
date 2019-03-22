@@ -8,7 +8,7 @@ public class GameClient {
 	private final static int port = 0;
 	
 	public static void main(String[] args) {
-		Player you = new Player();
+		Player you = new Player(GUI.getUserName());
 		
 		try {
 			Socket socket = new Socket(serverHostIP, port);
@@ -16,6 +16,11 @@ public class GameClient {
 			DataInputStream is = new DataInputStream(socket.getInputStream());
 			DataOutputStream os = new DataOutputStream(socket.getOutputStream());
 			
+			while(Game.matched != 13) {
+				if(Game.playerTurn() == you.getPlayerNum()) {
+					
+				}
+			}
 		} catch(IOException e) {
 			e.printStackTrace();
 		}
