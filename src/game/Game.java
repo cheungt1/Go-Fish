@@ -5,8 +5,6 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
 
-import static game.Card.Suit;
-
 /**
  * This is the game class of the Go Fish game.
  * It keeps track of the number of players in the game (max 4) 

@@ -5,11 +5,11 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static game.Util.*;
+import static game.Util.writeWithThread;
 
 public class GameServer {
 
@@ -17,7 +17,7 @@ public class GameServer {
 
     private final int port;
 
-    private List<Player> players;
+    private List<PlayerHandler> players;
 
     public GameServer(Game game, int port) {
         this.game = game;
@@ -44,6 +44,9 @@ public class GameServer {
                     writeWithThread(os, "[Welcome to Go Fish! Please enter your name]: ");
 
                     String username = is.readUTF();
+                    writeWithThread(os, String.format("[Have fun, %s!]", username));
+
+                    players.add(new PlayerHandler(username, is, os));
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -60,29 +63,32 @@ public class GameServer {
     }
 
     public List<String> players() {
-        return players.stream().map(Player::getName).collect(Collectors.toList());
+        List<String> playerNames = new ArrayList<>();
+        for (Player p : players) {
+            playerNames.add(p.getName());
+        }
+
+        return playerNames;
     }
 
-    private class Player implements Runnable {
-
-        String name;
+    private class PlayerHandler extends Player implements Runnable {
 
         DataInputStream is;
         DataOutputStream os;
 
-        Player(String name, DataInputStream is, DataOutputStream os) {
-            this.name = name;
+        PlayerHandler(String name, DataInputStream is, DataOutputStream os) {
+            super(name);
+
             this.is = is;
             this.os = os;
         }
 
         @Override
         public void run() {
-
-        }
-
-        public String getName() {
-            return name;
+            // keep playing until this player loses or game ends
+            while (true) {
+                continue; // to be implemented
+            }
         }
     }
 }
