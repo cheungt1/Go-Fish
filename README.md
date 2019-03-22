@@ -30,8 +30,9 @@ By using Java, we will create two objects, Card and Player, that will keep track
 
 ### Week 2 (March 18 - March 24)
   **Will**
-  1. Continue with creating the Server/Client class
+  1. Continue with creating the Client class
   2. Testing for error/bugs of the game
+  3. Integration with Server and Client class
   
   **Did**
   1. Designed and coded a basic GUI for the game, coded simple actions for buttons
