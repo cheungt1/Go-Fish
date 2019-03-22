@@ -77,6 +77,21 @@ public class GUI extends Application
 		
 		rbPlayer2.setSelected(true);
 		
+		//Sets unnecessary radio buttons invisible
+		//rbPlayer3.setVisible(false);
+		//rbPlayer4.setVisible(false);
+		
+		//Sets the other radio buttons' visibility to the correct state, if needed
+		if(Game.numPlayer > 2)
+		{
+			rbPlayer3.setVisible(true);
+			
+			if(Game.numPlayer == 4)
+			{
+				rbPlayer4.setVisible(true);
+			}
+		}
+		
 		//Sets up ComboBox's values
 		cbCardValues.getItems().addAll("Ace", "2", "3", "4", "5", "6", "7", "8", "9", "Jack", "Queen", "King");
 		
