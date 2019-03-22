@@ -18,7 +18,16 @@ public class GUI extends Application
 	Stage playingStage = new Stage();
 	Stage startStage = new Stage();
 	
+	//Public GUI Components to send to server/client
 	static TextField tfUserName = new TextField();
+	
+	static RadioButton rbPlayer2 = new RadioButton("Player 2");
+	static RadioButton rbPlayer3 = new RadioButton("Player 3");
+	static RadioButton rbPlayer4 = new RadioButton("Player 4");
+	
+	static ToggleGroup rbPlayers = new ToggleGroup();
+	
+	static ComboBox<String> cbCardValues = new ComboBox<String>();
 	
 	//Creates Font objects to reference throughout formatting GUI components
 	Font f16 = new Font("System", 16);
@@ -61,22 +70,14 @@ public class GUI extends Application
 		Button btConfirmAction = new Button("Ask for that card");
 		Button btQuit = new Button("Leave Game");
 		
-		//RadioButton initialization
-		RadioButton rbPlayer2 = new RadioButton("Player 2");
-		RadioButton rbPlayer3 = new RadioButton("Player 3");
-		RadioButton rbPlayer4 = new RadioButton("Player 4");
-		
-		ToggleGroup rbPlayers = new ToggleGroup();
-		
+		//Sets up a toggle group so only one option can be true out of the three
 		rbPlayer2.setToggleGroup(rbPlayers);
 		rbPlayer3.setToggleGroup(rbPlayers);
 		rbPlayer4.setToggleGroup(rbPlayers);
 		
 		rbPlayer2.setSelected(true);
 		
-		//ComboBox initialization
-		ComboBox<String> cbCardValues = new ComboBox<String>();
-		
+		//Sets up ComboBox's values
 		cbCardValues.getItems().addAll("Ace", "2", "3", "4", "5", "6", "7", "8", "9", "Jack", "Queen", "King");
 		
 		//The following two blocks of code are from: https://stackoverflow.com/questions/45144853/javafx-combobox-displayed-item-font-size?rq=1
@@ -326,6 +327,28 @@ public class GUI extends Application
 		lblUserName.setText(newName);
 	}
 	
+	public static String getPlayerChoice()
+	{
+		if(rbPlayer2.isSelected())
+		{
+			return "" + rbPlayer2.getText();
+		}
+		else if(rbPlayer3.isSelected()) 
+		{
+			return "" + rbPlayer3.getText();
+		}
+		else
+		{
+			return "" + rbPlayer4.getText();
+		}
+	}
+	
+	public static String getCardValue()
+	{
+		return cbCardValues.getValue();
+	}
+	
+	//Allows client/server interaction
 	public static String getUserName()
 	{
 		return tfUserName.getText();
