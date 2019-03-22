@@ -206,7 +206,7 @@ public class GUI extends Application
 		translate(-465.5, 0, lblPlayer4Name);
 		
 		//pVisual background set-up
-		background.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\Desktop\\Project Images\\tableTextureTest.jpg")));
+		background.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\GUIGraphic\\tableTexture.jpg")));
 		translate(-112.5, 15, background);
 		
 		//pVisual text background set-up
