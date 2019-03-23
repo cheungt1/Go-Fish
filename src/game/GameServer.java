@@ -44,6 +44,10 @@ public class GameServer {
                     writeWithThread(os, "[Welcome to Go Fish! Please enter your name]: ");
 
                     String username = is.readUTF();
+
+                    writeWithThread(os, String.format("[Hello, %s!]", username));
+
+                    new Thread(new PlayerHandler(username, is, os)).start();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -63,26 +67,22 @@ public class GameServer {
         return players.stream().map(Player::getName).collect(Collectors.toList());
     }
 
-    private class Player implements Runnable {
-
-        String name;
+    private class PlayerHandler extends Player implements Runnable {
 
         DataInputStream is;
         DataOutputStream os;
 
-        Player(String name, DataInputStream is, DataOutputStream os) {
-            this.name = name;
+        PlayerHandler(String name, DataInputStream is, DataOutputStream os) {
+            super(name);
             this.is = is;
             this.os = os;
+
+            players.add(this);
         }
 
         @Override
         public void run() {
 
-        }
-
-        public String getName() {
-            return name;
         }
     }
 }
