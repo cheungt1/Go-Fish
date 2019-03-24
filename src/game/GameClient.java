@@ -18,6 +18,11 @@ public class GameClient {
 			
 			while(Game.matched != 13) {
 				if(Game.playerTurn() == you.getPlayerNum()) {
+					String playerChoice = GUI.getPlayerChoice();
+					int card = Integer.parseInt(GUI.getCardValue());
+					
+					
+					
 					
 				}
 			}
