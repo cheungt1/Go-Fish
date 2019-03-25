@@ -17,6 +17,7 @@ public class Player {
     private int score;
     private int playerNum;
     private LinkedList<Integer> hand;
+    private static boolean isActive = true;
 
     /**
      * Instantiating a player with their name, player number
@@ -94,7 +95,22 @@ public class Player {
             current = next; // update current
         }
     }
+    
+    /**
+     * Determines if a player has cards or not
+     */
+    public void setIsActive() {
+    	isActive = hand.size() != 0;
+    }
 
+    /**
+     * A getter for whether or not this player is active
+     * @return a boolean value of active or not
+     */
+    public boolean getIsActive() {
+    	return isActive;
+    }
+    
     /**
      * A getter for the hand
      *
