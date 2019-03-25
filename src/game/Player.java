@@ -94,6 +94,8 @@ public class Player {
 
             current = next; // update current
         }
+        
+        setIsActive(); // see if the player still has any cards
     }
     
     /**
@@ -101,6 +103,11 @@ public class Player {
      */
     public void setIsActive() {
     	isActive = hand.size() != 0;
+    	
+    	// if the player is not active, remove from order queue
+    	if(!isActive) {
+    		Game.removePlayer(playerNum);
+    	}
     }
 
     /**

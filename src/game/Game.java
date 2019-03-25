@@ -1,6 +1,7 @@
 package game;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
@@ -61,6 +62,19 @@ public class Game {
 		order.add(first);
 
 		return first;
+	}
+	
+	/**
+	 * Remove a player from the order queue once they have no cards
+	 * @param n the player whose hand is empty
+	 */
+	static void removePlayer(int n) {
+		Iterator<Integer> itr = order.iterator();
+		while(itr.hasNext()) {
+			if(itr.next() == n) {
+				itr.remove();
+			}
+		}
 	}
 
 	/**

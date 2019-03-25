@@ -29,8 +29,6 @@ public class GameClient {
 					String selection = playerChoice + " " + card;
 					
 					writeWithThread(os, selection);
-					
-					
 				}
 			}
 		} catch(IOException e) {
