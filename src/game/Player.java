@@ -1,6 +1,7 @@
 package game;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
@@ -31,18 +32,45 @@ public class Player {
         this.hand = Game.createHand();
     }
 
+    public void give(int card) {
+        if (card < 0)
+            throw new IllegalArgumentException("Invalid Card: " + card);
+
+        hand.add(card);
+    }
+
+    public void give(int card, int num) {
+        for (; num > 0; num--)
+            give(card);
+    }
+
+    public int take(int card) {
+        if (card < 0)
+            throw new IllegalArgumentException("Invalid Card: " + card);
+
+        int n = hasCard(card);
+        if (n > 0)
+            hand.removeIf(i -> i.equals(card));
+
+        return n;
+    }
+
     /**
      * Check if this player has the specified card in hand.
      *
-     * @param x the number value of the card asked
-     * @return true if this player has the card, false otherwise
+     * @param card the number value of the card asked
+     * @return the number of card this player has in hand, 0 if none
      */
-    public boolean hasCard(Integer x) {
-        // x = 1(A): ((1 - 1) % 13) + 1 = 1(A)
-        // x = 12(Q): ((12 - 1) % 13) + 1 = 12(Q)
-        // x = 13(K): ((13 - 1) % 13) + 1 = 13(K)
-        // x = 14(A): ((14 - 1) % 13) + 1 = 1(A)
-        return this.hand.contains(((x - 1) % 13) + 1);
+    public int hasCard(int card) {
+        Iterator<Integer> itr = hand.iterator();
+        int count = 0;
+        while (itr.hasNext()) {
+            int thisCard = convert(itr.next());
+            if (thisCard == card)
+                count++;
+        }
+
+        return count;
     }
 
     /**
@@ -162,5 +190,13 @@ public class Player {
     @Override 
     public String toString() {
     	return String.format("%s has %d points", name, score);
+    }
+
+    private int convert(int card) {
+        // x = 1(A): ((1 - 1) % 13) + 1 = 1(A)
+        // x = 12(Q): ((12 - 1) % 13) + 1 = 12(Q)
+        // x = 13(K): ((13 - 1) % 13) + 1 = 13(K)
+        // x = 14(A): ((14 - 1) % 13) + 1 = 1(A)
+        return ((card - 1) % 13) + 1;
     }
 }

@@ -5,11 +5,10 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static game.Util.*;
+import static game.Util.writeWithThread;
 
 public class GameServer {
 
@@ -17,12 +16,14 @@ public class GameServer {
 
     private final int port;
 
-    private List<Player> players;
+    private Player[] players;
+    private int numPlayers;
 
     public GameServer(Game game, int port) {
         this.game = game;
         this.port = port;
-        this.players = new LinkedList<>();
+        this.players = new Player[4];
+        this.numPlayers = 0;
     }
 
     public void start() {
@@ -64,7 +65,11 @@ public class GameServer {
     }
 
     public List<String> players() {
-        return players.stream().map(Player::getName).collect(Collectors.toList());
+        List<String> names = new ArrayList<>();
+        for (Player p : players)
+            names.add(p.getName());
+
+        return names;
     }
 
     private class PlayerHandler extends Player implements Runnable {
@@ -77,12 +82,33 @@ public class GameServer {
             this.is = is;
             this.os = os;
 
-            players.add(this);
+            players[numPlayers++] = this;
         }
 
         @Override
         public void run() {
+            try {
+                while (true) {
+                    String selection = is.readUTF();
+                    String[] slct = selection.split("[\\s+]");
+                    Player other = players[Integer.parseInt(slct[1])];
+                    int targetCard = Integer.parseInt(slct[2]);
 
+                    List<Integer> myHand = this.getHand();
+                    List<Integer> otherHand = other.getHand();
+
+                    int n;
+                    if ((n = other.take(targetCard)) > 0) {
+                        this.give(targetCard, n);
+                    } else {
+                        this.goFish();
+                    }
+
+                    writeWithThread(os, String.format("[Player %s has %d %s's!]", slct[1], n, slct[2]));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }
