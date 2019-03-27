@@ -14,7 +14,7 @@ public class GameServer {
 
     private final Game game;
 
-    private final int port;
+    private static int port = 0;
 
     private Player[] players;
     private int numPlayers;
@@ -60,7 +60,7 @@ public class GameServer {
         return game;
     }
 
-    public int getPort() {
+    public static int getPort() {
         return port;
     }
 

@@ -7,11 +7,10 @@ import static game.Util.*;
 
 public class GameClient {
 	private final static String serverHostIP = "";
-	private final static int port = 0;
 
 	public static void main(String[] args) {
 		try {
-			Socket socket = new Socket(serverHostIP, port);
+			Socket socket = new Socket(serverHostIP, GameServer.getPort());
 
 			DataInputStream is = new DataInputStream(socket.getInputStream());
 			DataOutputStream os = new DataOutputStream(socket.getOutputStream());
