@@ -42,6 +42,18 @@ By using Java, we will create two objects, Card and Player, that will keep track
   **Blocks/Challenges**
   1. ~~Aligning separate panes within a larger pane~~ (Fixed)
 
+### Week 3 (March 25 - March 31)
+  **Will**
+  1. Finalise the Server and Client class
+  2. Test programs for bugs and errors
+  3. Clean-up code and create Java documentation
+  
+  **Did**
+  1. Server class can handle new players and follow game rules
+  2. Client class is created to handle player activities
+  
+  **Blocks/Challenges***
+
 ## Team Members
 - Ruiming Zeng: GUI Design
 - Z Yang: Code Clean up/Back-End Coding
