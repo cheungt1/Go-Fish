@@ -1,8 +1,6 @@
 package game;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -47,9 +45,13 @@ public class GameServer {
                     writeWithThread(os, "[Welcome to Go Fish! Please enter your name]: ");
 
                     String username = is.readUTF();
+
+                    Player newPlayer = game.addPlayer(username);
+                    new ObjectOutputStream(os).writeObject(newPlayer);
+
                     writeWithThread(os, String.format("[Hello, %s!]", username));
 
-                    new Thread(new PlayerHandler(game.addPlayer(username), is, os)).start();
+                    new Thread(new PlayerHandler(newPlayer, is, os)).start();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
