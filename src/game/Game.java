@@ -1,17 +1,18 @@
 package game;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
  * This is the game class of the Go Fish game.
  * It keeps track of the number of players in the game (max 4) 
- * and the order that the players are in (First come first serve).
+ * and the players that the players are in (First come first serve).
  * 
  * @author Ruiming Zeng, Z Yang, Martin Cheung
  */
-public class Game {
+public class Game implements Serializable {
 
-	private Deque<Player> order;
+	private Deque<Player> players;
 	private Player current;
 	private int numPlayers;
 	
@@ -30,11 +31,11 @@ public class Game {
 	 * There is only a zero constructor because
 	 * it does not make sense to have a game object.
 	 * However it is responsible for resetting the game,
-	 * thus on instantiation, it resets the deck position, player count and order,
+	 * thus on instantiation, it resets the deck position, player count and players,
 	 * and it shuffles the deck.
 	 */
 	public Game() {
-		order = new LinkedList<>();
+		players = new LinkedList<>();
 		current = null;
 		numPlayers = 0;
 		deckPos = 0;
@@ -53,12 +54,12 @@ public class Game {
 
 	/**
 	 * When a player joins, the player count is increased by one
-	 * and it is added to the order list.
-	 * @return a number to this Player, order number
+	 * and it is added to the players list.
+	 * @return a number to this Player, players number
 	 */
 	public int join(Player player) {
 		numPlayers++;
-		order.addLast(player);
+		players.addLast(player);
 
 		return numPlayers;
 	}
@@ -69,20 +70,20 @@ public class Game {
 	 * @return a player number
 	 */
 	public Player nextPlayer() {
-		current = order.removeFirst();
+		current = players.removeFirst();
 
-		order.addLast(current);
+		players.addLast(current);
 
 		return current;
 	}
 
 	/**
-	 * Remove a player from the order queue once they have no cards
+	 * Remove a player from the players queue once they have no cards
 	 * @param player the player whose hand is empty
 	 */
 	@Deprecated
 	public void removePlayer(Player player) {
-		order.removeIf(player1 -> player1 == player);
+		players.removeIf(player1 -> player1 == player);
 	}
 
 	/**
@@ -156,6 +157,10 @@ public class Game {
 	public boolean isEnded() {
 		return ended;
 	}
+
+	public List<Player> players() {
+	    return ((LinkedList<Player>) players);
+    }
 
 	private int convert(int card) {
 		// x = 1(A): ((1 - 1) % 13) + 1 = 1(A)

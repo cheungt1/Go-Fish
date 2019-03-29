@@ -31,7 +31,7 @@ public class GameServer {
     public void start() {
         new Thread(() -> {
             try {
-                System.out.printf("[Waiting for connection at port %d ...]", port);
+                System.out.printf("[Waiting for connection at port %d ...]%n", port);
 
                 while (true) {
                     // accept player
@@ -122,5 +122,12 @@ public class GameServer {
         public Player getPlayer() {
             return player;
         }
+    }
+
+    public static void main(String[] args) throws IOException {
+        Game game = new Game();
+        GameServer server = new GameServer(game, 8000);
+        server.start();
+        GameClient client1 = new GameClient(server);
     }
 }
