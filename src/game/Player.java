@@ -37,8 +37,9 @@ public class Player implements Serializable {
     public void give(int card) {
         if (card < 0)
             throw new IllegalArgumentException("Invalid Card: " + card);
-
+        
         hand.add(card);
+        updateHand();
     }
 
     public void give(int card, int num) {
