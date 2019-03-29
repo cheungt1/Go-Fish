@@ -13,7 +13,9 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 public class GUI extends Application
-{	
+{
+	Game game = new Game();
+
 	//Creates global stages to allow only one stage to be active at once
 	Stage playingStage = new Stage();
 	Stage startStage = new Stage();
@@ -82,11 +84,11 @@ public class GUI extends Application
 		//rbPlayer4.setVisible(false);
 		
 		//Sets the other radio buttons' visibility to the correct state, if needed
-		if(Game.numPlayer > 2)
+		if(game.numPlayers() > 2)
 		{
 			rbPlayer3.setVisible(true);
 			
-			if(Game.numPlayer == 4)
+			if(game.numPlayers() == 4)
 			{
 				rbPlayer4.setVisible(true);
 			}

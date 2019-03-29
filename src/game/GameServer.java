@@ -18,13 +18,13 @@ public class GameServer {
     private final String IP;
     private final ServerSocket serverSocket;
 
-    private Player[] players;
+    private PlayerHandler[] players;
     private int numPlayers;
 
     public GameServer(Game game, int port) throws IOException {
         this.game = game;
         this.port = port;
-        this.players = new Player[4];
+        this.players = new PlayerHandler[4];
         this.numPlayers = 0;
         this.serverSocket = new ServerSocket(port);
         this.IP = serverSocket.getInetAddress().getHostAddress();
@@ -49,7 +49,7 @@ public class GameServer {
                     String username = is.readUTF();
                     writeWithThread(os, String.format("[Hello, %s!]", username));
 
-                    new Thread(new PlayerHandler(username, is, os)).start();
+                    new Thread(new PlayerHandler(game.addPlayer(username), is, os)).start();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -71,19 +71,20 @@ public class GameServer {
 
     public List<String> players() {
         List<String> names = new ArrayList<>();
-        for (Player p : players)
-            names.add(p.getName());
+        for (PlayerHandler handler : players)
+            names.add(handler.getPlayer().getName());
 
         return names;
     }
 
-    private class PlayerHandler extends Player implements Runnable {
+    private class PlayerHandler implements Runnable {
+
+        Player player;
 
         DataInputStream is;
         DataOutputStream os;
 
-        PlayerHandler(String name, DataInputStream is, DataOutputStream os) {
-            super(name);
+        PlayerHandler(Player player, DataInputStream is, DataOutputStream os) {
             this.is = is;
             this.os = os;
 
@@ -96,17 +97,17 @@ public class GameServer {
                 while (true) {
                     String selection = is.readUTF();
                     String[] slct = selection.split("[\\s+]");
-                    Player other = players[Integer.parseInt(slct[1])];
+                    Player other = players[Integer.parseInt(slct[1])].getPlayer();
                     int targetCard = Integer.parseInt(slct[2]);
 
-                    List<Integer> myHand = this.getHand();
+                    List<Integer> myHand = player.getHand();
                     List<Integer> otherHand = other.getHand();
 
                     int n;
                     if ((n = other.take(targetCard)) > 0) {
-                        this.give(targetCard, n);
+                        player.give(targetCard, n);
                     } else {
-                        this.goFish();
+                        player.goFish();
                     }
 
                     writeWithThread(os, String.format("[Player %s has %d %s's!]", slct[1], n, slct[2]));
@@ -114,6 +115,10 @@ public class GameServer {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+
+        public Player getPlayer() {
+            return player;
         }
     }
 }
