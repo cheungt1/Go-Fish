@@ -40,6 +40,9 @@ public class GUI extends Application
 	String userName = "";
 	Label lblUserName = new Label(userName); //Used to display the user's name
 	
+	static int playerScore = 0;
+	static Label lblPlayerScore = new Label("Your Score: " + playerScore);
+	
 	public static void main(String[] args)
 	{
 		launch(args);
@@ -244,6 +247,7 @@ public class GUI extends Application
 		//Setting font sizes
 		lblPlayerSection.setFont(f20);
 		lblCardSection.setFont(f20);
+		lblPlayerScore.setFont(f18);
 		rbPlayer2.setFont(f18);
 		rbPlayer3.setFont(f18);
 		rbPlayer4.setFont(f18);
@@ -256,7 +260,7 @@ public class GUI extends Application
 		lblPlayer4Name.setFont(f16);
 		
 		//Adding all components into panes
-		pInteraction.getChildren().addAll(lblPlayerSection, lblCardSection, imgCard, rbPlayer2, rbPlayer3, rbPlayer4, cbCardValues, btConfirmAction, btQuit);
+		pInteraction.getChildren().addAll(lblPlayerScore, lblPlayerSection, lblCardSection, imgCard, rbPlayer2, rbPlayer3, rbPlayer4, cbCardValues, btConfirmAction, btQuit);
 		pVisual.getChildren().addAll(background, lblUserName, lblPlayer2Name, lblPlayer3Name, lblPlayer4Name);
 		pTextLog.getChildren().addAll(lblRecentAction);
 		
@@ -268,44 +272,36 @@ public class GUI extends Application
 		overallPane.setBackground(new Background(new BackgroundFill(Color.rgb(243, 229, 192), CornerRadii.EMPTY, Insets.EMPTY))); 
 		
 		//pInteraction Alignment	
-		translate(-20, -180, lblPlayerSection);
-		translate(-20, -135, rbPlayer2);
-		translate(-20, -105, rbPlayer3);
-		translate(-20, -75, rbPlayer4);
-		translate(-20, -25, lblCardSection);
-		translate(-20, 10, cbCardValues);
-		translate(-20, 85, imgCard);
-		translate(-20, 160, btConfirmAction);
-		translate(-20, 210, btQuit);
+		translate(-20, -230, lblPlayerSection);
+		translate(-20, -185, rbPlayer3);
+		translate(-20, -155, rbPlayer4);
+		translate(-20, -125, rbPlayer2);
+		translate(-20, -75, lblCardSection);
+		translate(-20, -40, cbCardValues);
+		translate(-20, 35, imgCard);
+		translate(-20, 110, btConfirmAction);
+		translate(-20, 160, btQuit);
+		translate(-20, 210, lblPlayerScore);
 		
 		//pVisual Alignment
 		StackPane.setAlignment(lblUserName, Pos.BOTTOM_CENTER);
 		translate(-30, -40, lblUserName);
-		lblPlayer2Name.setRotate(180);
-		translate(-30, -190, lblPlayer2Name);
-		lblPlayer3Name.setRotate(270);
-		translate(315.5, 0, lblPlayer3Name);
-		lblPlayer4Name.setRotate(90);
-		translate(-375.5, 0, lblPlayer4Name);
+		lblPlayer3Name.setRotate(180);
+		translate(-30, -190, lblPlayer3Name);
+		lblPlayer4Name.setRotate(270);
+		translate(315.5, 0, lblPlayer4Name);
+		lblPlayer2Name.setRotate(90);
+		translate(-375.5, 0, lblPlayer2Name);
 		
 		//Label actions set-up
 		//Click on the label to re-orient the label to read the player's name
-		lblPlayer2Name.setOnMousePressed(e -> 
-		{
-			lblPlayer2Name.setRotate(0);
-		});
-		lblPlayer2Name.setOnMouseReleased(e -> 
-		{
-			lblPlayer2Name.setRotate(180);
-		});
-		
 		lblPlayer3Name.setOnMousePressed(e -> 
 		{
 			lblPlayer3Name.setRotate(0);
 		});
 		lblPlayer3Name.setOnMouseReleased(e -> 
 		{
-			lblPlayer3Name.setRotate(270);
+			lblPlayer3Name.setRotate(180);
 		});
 		
 		lblPlayer4Name.setOnMousePressed(e -> 
@@ -314,7 +310,16 @@ public class GUI extends Application
 		});
 		lblPlayer4Name.setOnMouseReleased(e -> 
 		{
-			lblPlayer4Name.setRotate(90);
+			lblPlayer4Name.setRotate(270);
+		});
+		
+		lblPlayer2Name.setOnMousePressed(e -> 
+		{
+			lblPlayer2Name.setRotate(0);
+		});
+		lblPlayer2Name.setOnMouseReleased(e -> 
+		{
+			lblPlayer2Name.setRotate(90);
 		});
 		//pVisual background set-up
 		background.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\GUIGraphic\\tableTexture.jpg")));
@@ -371,32 +376,9 @@ public class GUI extends Application
 			}
 			else
 			{
-				//Gives a warning message, set-up is practically the same as the other times
-				Stage warningStage = new Stage();
-				
-				StackPane warningPane = new StackPane();
-				
-				Label lblWarning = new Label("You MUST enter a name.");
-				
-				Button btClose = new Button("I understand");
-				
-				lblWarning.setFont(f18);
-				btClose.setFont(f16);
-				
-				btClose.setOnAction(f ->
-				{
-					warningStage.close();
-				});
-				
-				warningPane.getChildren().addAll(lblWarning, btClose);
-				
-				translate(0, -32, lblWarning);
-				translate(0, 32, btClose);
-				
-				Scene warningScene = new Scene(warningPane, 256, 128);
-				warningStage.setScene(warningScene);
-				warningStage.setTitle("WARNING!!");
-				warningStage.show();
+				//Changes label to warn user of entering a name
+				lblMessage1.setVisible(false);
+				lblMessage2.setText("You MUST enter a name!");
 			}
 		});
 		btConfirm.setDefaultButton(true);
@@ -456,5 +438,19 @@ public class GUI extends Application
 		{
 			return rbPlayer4.getText();
 		}
+	}
+	
+	public static void updateScore()
+	{
+		if(playerScore < 13)
+		{
+			playerScore++;
+			updateLabelScore();
+		}
+	}
+	
+	private static void updateLabelScore()
+	{
+		lblPlayerScore.setText("Your Score: " + playerScore);
 	}
 }
