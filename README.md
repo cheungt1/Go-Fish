@@ -51,8 +51,11 @@ By using Java, we will create two objects, Card and Player, that will keep track
   **Did**
   1. Server class can handle new players and follow game rules
   2. Client class is created to handle player activities
+  3. Changed methods in Player/Game to non-static
+  4. Update GUI to see player name
   
   **Blocks/Challenges***
+    1.Interaction between Clinet/Server
 
 ## Team Members
 - Ruiming Zeng: GUI Design
