@@ -273,9 +273,9 @@ public class GUI extends Application
 		
 		//pInteraction Alignment	
 		translate(-20, -230, lblPlayerSection);
-		translate(-20, -185, rbPlayer2);
-		translate(-20, -155, rbPlayer3);
-		translate(-20, -125, rbPlayer4);
+		translate(-20, -185, rbPlayer3);
+		translate(-20, -155, rbPlayer4);
+		translate(-20, -125, rbPlayer2);
 		translate(-20, -75, lblCardSection);
 		translate(-20, -40, cbCardValues);
 		translate(-20, 35, imgCard);
@@ -286,31 +286,22 @@ public class GUI extends Application
 		//pVisual Alignment
 		StackPane.setAlignment(lblUserName, Pos.BOTTOM_CENTER);
 		translate(-30, -40, lblUserName);
-		lblPlayer2Name.setRotate(180);
-		translate(-30, -190, lblPlayer2Name);
-		lblPlayer3Name.setRotate(270);
-		translate(315.5, 0, lblPlayer3Name);
-		lblPlayer4Name.setRotate(90);
-		translate(-375.5, 0, lblPlayer4Name);
+		lblPlayer3Name.setRotate(180);
+		translate(-30, -190, lblPlayer3Name);
+		lblPlayer4Name.setRotate(270);
+		translate(315.5, 0, lblPlayer4Name);
+		lblPlayer2Name.setRotate(90);
+		translate(-375.5, 0, lblPlayer2Name);
 		
 		//Label actions set-up
 		//Click on the label to re-orient the label to read the player's name
-		lblPlayer2Name.setOnMousePressed(e -> 
-		{
-			lblPlayer2Name.setRotate(0);
-		});
-		lblPlayer2Name.setOnMouseReleased(e -> 
-		{
-			lblPlayer2Name.setRotate(180);
-		});
-		
 		lblPlayer3Name.setOnMousePressed(e -> 
 		{
 			lblPlayer3Name.setRotate(0);
 		});
 		lblPlayer3Name.setOnMouseReleased(e -> 
 		{
-			lblPlayer3Name.setRotate(270);
+			lblPlayer3Name.setRotate(180);
 		});
 		
 		lblPlayer4Name.setOnMousePressed(e -> 
@@ -319,7 +310,16 @@ public class GUI extends Application
 		});
 		lblPlayer4Name.setOnMouseReleased(e -> 
 		{
-			lblPlayer4Name.setRotate(90);
+			lblPlayer4Name.setRotate(270);
+		});
+		
+		lblPlayer2Name.setOnMousePressed(e -> 
+		{
+			lblPlayer2Name.setRotate(0);
+		});
+		lblPlayer2Name.setOnMouseReleased(e -> 
+		{
+			lblPlayer2Name.setRotate(90);
 		});
 		//pVisual background set-up
 		background.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\GUIGraphic\\tableTexture.jpg")));
