@@ -22,25 +22,25 @@ public class GameClient {
 			DataInputStream is = new DataInputStream(socket.getInputStream());
 			DataOutputStream os = new DataOutputStream(socket.getOutputStream());
 
-			// send player name to server
-			writeWithThread(os, GUI.getUserName());
-
-			Player you = new Player(GUI.getUserName());
-
 			while (Game.matched != 13) {
-				if (Game.playerTurn() == you.getPlayerNum()) {
-					int cardsRec;
-					do {
-						String playerChoice = GUI.getPlayerChoice();
-						int card = Integer.parseInt(GUI.getCardValue());
+				Player currentPlayer = new Player("x");// = GameServer.getNextPlayer();
 
-						String selection = playerChoice + " " + card;
+				int cardsRec;
 
-						writeWithThread(os, selection);
+				do {
+					String playerChoice = GUI.getPlayerChoice();
+					int card = Integer.parseInt(GUI.getCardValue());
 
-						cardsRec = is.readInt();
-					} while (cardsRec != 0);
-				}
+					String selection = playerChoice + " " + card;
+
+					writeWithThread(os, selection);
+
+					currentPlayer.updateHand();
+
+					String resultMessage = is.readUTF();
+					String[] rm = resultMessage.split("[\\s+]");
+					cardsRec = Integer.parseInt(rm[3]);
+				} while (cardsRec != 0);
 			}
 
 			is.close();
