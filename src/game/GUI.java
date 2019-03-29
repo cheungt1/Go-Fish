@@ -40,6 +40,9 @@ public class GUI extends Application
 	String userName = "";
 	Label lblUserName = new Label(userName); //Used to display the user's name
 	
+	static int playerScore = 0;
+	static Label lblPlayerScore = new Label("Your Score: " + playerScore);
+	
 	public static void main(String[] args)
 	{
 		launch(args);
@@ -244,6 +247,7 @@ public class GUI extends Application
 		//Setting font sizes
 		lblPlayerSection.setFont(f20);
 		lblCardSection.setFont(f20);
+		lblPlayerScore.setFont(f18);
 		rbPlayer2.setFont(f18);
 		rbPlayer3.setFont(f18);
 		rbPlayer4.setFont(f18);
@@ -256,7 +260,7 @@ public class GUI extends Application
 		lblPlayer4Name.setFont(f16);
 		
 		//Adding all components into panes
-		pInteraction.getChildren().addAll(lblPlayerSection, lblCardSection, imgCard, rbPlayer2, rbPlayer3, rbPlayer4, cbCardValues, btConfirmAction, btQuit);
+		pInteraction.getChildren().addAll(lblPlayerScore, lblPlayerSection, lblCardSection, imgCard, rbPlayer2, rbPlayer3, rbPlayer4, cbCardValues, btConfirmAction, btQuit);
 		pVisual.getChildren().addAll(background, lblUserName, lblPlayer2Name, lblPlayer3Name, lblPlayer4Name);
 		pTextLog.getChildren().addAll(lblRecentAction);
 		
@@ -268,15 +272,16 @@ public class GUI extends Application
 		overallPane.setBackground(new Background(new BackgroundFill(Color.rgb(243, 229, 192), CornerRadii.EMPTY, Insets.EMPTY))); 
 		
 		//pInteraction Alignment	
-		translate(-20, -180, lblPlayerSection);
-		translate(-20, -135, rbPlayer2);
-		translate(-20, -105, rbPlayer3);
-		translate(-20, -75, rbPlayer4);
-		translate(-20, -25, lblCardSection);
-		translate(-20, 10, cbCardValues);
-		translate(-20, 85, imgCard);
-		translate(-20, 160, btConfirmAction);
-		translate(-20, 210, btQuit);
+		translate(-20, -230, lblPlayerSection);
+		translate(-20, -185, rbPlayer2);
+		translate(-20, -155, rbPlayer3);
+		translate(-20, -125, rbPlayer4);
+		translate(-20, -75, lblCardSection);
+		translate(-20, -40, cbCardValues);
+		translate(-20, 35, imgCard);
+		translate(-20, 110, btConfirmAction);
+		translate(-20, 160, btQuit);
+		translate(-20, 210, lblPlayerScore);
 		
 		//pVisual Alignment
 		StackPane.setAlignment(lblUserName, Pos.BOTTOM_CENTER);
@@ -456,5 +461,19 @@ public class GUI extends Application
 		{
 			return rbPlayer4.getText();
 		}
+	}
+	
+	public static void updateScore()
+	{
+		if(playerScore < 13)
+		{
+			playerScore++;
+			updateLabelScore();
+		}
+	}
+	
+	private static void updateLabelScore()
+	{
+		lblPlayerScore.setText("Your Score: " + playerScore);
 	}
 }
