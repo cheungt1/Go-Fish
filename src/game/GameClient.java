@@ -26,12 +26,12 @@ public class GameClient {
 			writeWithThread(os, GUI.getUserName());
 
 			// todo retrieve player object from server
-			Player you = new Player(GUI.getUserName());
-
 			Game game = server.getGame();
+			
+			Player currentPlayer = new Player(game, GUI.getUserName());
 
 			while (game.getMatched() != 13) {
-				if (game.nextPlayer() == you) {
+				if (game.nextPlayer() == currentPlayer) {
 					int cardsRec;
 					do {
 						String playerChoice = GUI.getPlayerChoice();
@@ -41,7 +41,12 @@ public class GameClient {
 
 						writeWithThread(os, selection);
 
-						cardsRec = is.readInt();
+						currentPlayer.updateHand();
+
+						String resultMessage = is.readUTF();
+						String[] rm = resultMessage.split("[\\s+]");
+						cardsRec = Integer.parseInt(rm[3]);
+						//cardsRec = is.readInt();
 					} while (cardsRec != 0);
 				}
 			}
