@@ -47,7 +47,9 @@ public class Game implements Serializable {
 
 	public Player addPlayer(String name) {
 		Player player = new Player(this, name);
-		join(player);
+//		join(player);
+        numPlayers++;
+        players.addLast(player);
 
 		return player;
 	}
@@ -55,13 +57,10 @@ public class Game implements Serializable {
 	/**
 	 * When a player joins, the player count is increased by one
 	 * and it is added to the players list.
-	 * @return a number to this Player, players number
 	 */
-	public int join(Player player) {
+	public void join(Player player) {
 		numPlayers++;
 		players.addLast(player);
-
-		return numPlayers;
 	}
 
 	/**
@@ -98,7 +97,7 @@ public class Game implements Serializable {
 			 * range of [0,51]
 			 * swapping cards between current location and a random location
 			 */
-			int n = rnd.nextInt(deck.length);
+			int n = rnd.nextInt(deck.length - i);
 
 
 			//  basic swapping between 2 indices in an array
@@ -147,7 +146,7 @@ public class Game implements Serializable {
 	}
 
 	public int cardsLeft() {
-		return deck.length;
+		return deck.length - deckPos;
 	}
 
 	public int draw() {
@@ -160,6 +159,15 @@ public class Game implements Serializable {
 
 	public List<Player> players() {
 	    return ((LinkedList<Player>) players);
+    }
+
+    public Player findPlayer(String name) {
+        for (Player p : players) {
+            if (p.getName().equals(name))
+                return p;
+        }
+
+	    return null;
     }
 
 	private int convert(int card) {

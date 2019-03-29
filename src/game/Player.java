@@ -80,8 +80,9 @@ public class Player implements Serializable {
      * When a person got "Go-Fished", they add a card to their hand
      */
     public void goFish() {
-        if (game.deckPos() != game.cardsLeft()) {
+        if (game.cardsLeft() != 0) {
             this.hand.addLast(game.draw());
+            System.out.println("Go Fish! -> " + hand);
             updateHand();
         }
     }
@@ -187,5 +188,15 @@ public class Player implements Serializable {
     @Override 
     public String toString() {
     	return String.format("%s has %d points", name, score);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Player) {
+            Player p = ((Player) obj);
+            return p.getName().equals(name) && p.getScore() == score;
+        }
+
+        return false;
     }
 }

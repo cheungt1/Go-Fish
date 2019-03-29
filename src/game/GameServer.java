@@ -49,7 +49,8 @@ public class GameServer {
                     Player newPlayer = game.addPlayer(username);
                     new ObjectOutputStream(os).writeObject(newPlayer);
 
-                    writeWithThread(os, String.format("[Hello, %s!]", username));
+//                    writeWithThread(os, String.format("[Hello, %s!]", username));
+                    System.out.printf("%s has joined!", username);
 
                     new Thread(new PlayerHandler(newPlayer, is, os)).start();
                 }
@@ -73,8 +74,11 @@ public class GameServer {
 
     public List<String> players() {
         List<String> names = new ArrayList<>();
-        for (PlayerHandler handler : players)
-            names.add(handler.getPlayer().getName());
+        for (PlayerHandler handler : players) {
+            if (handler != null) {
+                names.add(handler.getPlayer().getName());
+            }
+        }
 
         return names;
     }
@@ -89,8 +93,10 @@ public class GameServer {
         PlayerHandler(Player player, DataInputStream is, DataOutputStream os) {
             this.is = is;
             this.os = os;
+            this.player = player;
 
             players[numPlayers++] = this;
+//            System.out.println(game.players());
         }
 
         @Override
@@ -98,9 +104,11 @@ public class GameServer {
             try {
                 while (true) {
                     String selection = is.readUTF();
+                    System.out.printf("[%s]%n", selection);
+
                     String[] slct = selection.split("[\\s+]");
-                    Player other = players[Integer.parseInt(slct[1])].getPlayer();
-                    int targetCard = Integer.parseInt(slct[2]);
+                    Player other = game.findPlayer(slct[0]);
+                    int targetCard = Integer.parseInt(slct[1]);
 
                     List<Integer> myHand = player.getHand();
                     List<Integer> otherHand = other.getHand();
@@ -112,7 +120,7 @@ public class GameServer {
                         player.goFish();
                     }
 
-                    writeWithThread(os, String.format("[Player %s has %d %s's!]", slct[1], n, slct[2]));
+                    writeWithThread(os, String.format("[Player %s has %d %s's!]%n", slct[0], n, slct[1]));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -122,12 +130,5 @@ public class GameServer {
         public Player getPlayer() {
             return player;
         }
-    }
-
-    public static void main(String[] args) throws IOException {
-        Game game = new Game();
-        GameServer server = new GameServer(game, 8000);
-        server.start();
-        GameClient client1 = new GameClient(server);
     }
 }
