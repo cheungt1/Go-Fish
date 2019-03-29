@@ -376,32 +376,9 @@ public class GUI extends Application
 			}
 			else
 			{
-				//Gives a warning message, set-up is practically the same as the other times
-				Stage warningStage = new Stage();
-				
-				StackPane warningPane = new StackPane();
-				
-				Label lblWarning = new Label("You MUST enter a name.");
-				
-				Button btClose = new Button("I understand");
-				
-				lblWarning.setFont(f18);
-				btClose.setFont(f16);
-				
-				btClose.setOnAction(f ->
-				{
-					warningStage.close();
-				});
-				
-				warningPane.getChildren().addAll(lblWarning, btClose);
-				
-				translate(0, -32, lblWarning);
-				translate(0, 32, btClose);
-				
-				Scene warningScene = new Scene(warningPane, 256, 128);
-				warningStage.setScene(warningScene);
-				warningStage.setTitle("WARNING!!");
-				warningStage.show();
+				//Changes label to warn user of entering a name
+				lblMessage1.setVisible(false);
+				lblMessage2.setText("You MUST enter a name!");
 			}
 		});
 		btConfirm.setDefaultButton(true);
