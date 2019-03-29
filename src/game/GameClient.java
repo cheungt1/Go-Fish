@@ -30,7 +30,7 @@ public class GameClient {
 			Game game = server.getGame();
 
 			while (game.getMatched() != 13) {
-				if (game.nextPlayer() == currentPlayer) {
+				if ((currentPlayer.getHand().size() != 0) && (game.nextPlayer() == currentPlayer)) {
 					int cardsRec;
 					
 					do {
