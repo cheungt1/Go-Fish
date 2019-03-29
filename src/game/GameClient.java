@@ -25,10 +25,13 @@ public class GameClient {
 			// send player name to server
 			writeWithThread(os, GUI.getUserName());
 
+			// todo retrieve player object from server
 			Player you = new Player(GUI.getUserName());
 
-			while (Game.matched != 13) {
-				if (Game.playerTurn() == you.getPlayerNum()) {
+			Game game = server.getGame();
+
+			while (game.getMatched() != 13) {
+				if (game.nextPlayer() == you) {
 					int cardsRec;
 					do {
 						String playerChoice = GUI.getPlayerChoice();

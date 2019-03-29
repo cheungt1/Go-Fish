@@ -16,9 +16,10 @@ public class Player {
 
     private String name;
     private int score;
-    private int playerNum;
     private LinkedList<Integer> hand;
-    private static boolean isActive = true;
+    private boolean active = true;
+
+    private Game game;
 
     /**
      * Instantiating a player with their name, player number
@@ -26,10 +27,10 @@ public class Player {
      *
      * @param name this player's name
      */
-    public Player(String name) {
+    public Player(Game game, String name) {
+        this.game = game;
         this.name = name;
-        this.playerNum = Game.join();
-        this.hand = Game.createHand();
+        this.hand = game.createHand();
     }
 
     public void give(int card) {
@@ -65,7 +66,7 @@ public class Player {
         Iterator<Integer> itr = hand.iterator();
         int count = 0;
         while (itr.hasNext()) {
-            int thisCard = convert(itr.next());
+            int thisCard = itr.next();
             if (thisCard == card)
                 count++;
         }
@@ -77,10 +78,9 @@ public class Player {
      * When a person got "Go-Fished", they add a card to their hand
      */
     public void goFish() {
-        if (Game.deckPos != Game.deck.length) {
-            this.hand.addLast(Game.deck[Game.deckPos]);
+        if (game.deckPos() != game.cardsLeft()) {
+            this.hand.addLast(game.draw());
             updateHand();
-            Game.deckPos++;
         }
     }
 
@@ -109,7 +109,7 @@ public class Player {
             if (current == next) { // if current element is the same as next
                 // increment count
                 if (++count == 4) { // four-of-a-kind is found
-                	Game.totalMatched(); // signal there is a match to the game class
+                	game.matched(); // signal there is a match to the game class
                     // remove 4 elements
                     for (int i = 0; i < 4; i++) {
                         itr.previous();
@@ -123,18 +123,18 @@ public class Player {
             current = next; // update current
         }
         
-        setIsActive(); // see if the player still has any cards
+        setActive(hand.size() != 0); // see if the player still has any cards
     }
     
     /**
      * Determines if a player has cards or not
      */
-    public void setIsActive() {
-    	isActive = hand.size() != 0;
-    	
+    public void setActive(boolean active) {
+        this.active = active;
+
     	// if the player is not active, remove from order queue
-    	if(!isActive) {
-    		Game.removePlayer(playerNum);
+    	if(!active) {
+    		game.removePlayer(this);
     	}
     }
 
@@ -142,8 +142,8 @@ public class Player {
      * A getter for whether or not this player is active
      * @return a boolean value of active or not
      */
-    public boolean getIsActive() {
-    	return isActive;
+    public boolean isActive() {
+    	return active;
     }
     
     /**
@@ -173,15 +173,10 @@ public class Player {
         return name;
     }
 
-    /**
-     * A getter for this player's number
-     *
-     * @return this player's number
-     */
-    public int getPlayerNum() {
-        return playerNum;
+    public Game getGame() {
+        return game;
     }
-    
+
     /**
      * The toString of the player class would display the 
      * number of points this player has.
@@ -190,13 +185,5 @@ public class Player {
     @Override 
     public String toString() {
     	return String.format("%s has %d points", name, score);
-    }
-
-    private int convert(int card) {
-        // x = 1(A): ((1 - 1) % 13) + 1 = 1(A)
-        // x = 12(Q): ((12 - 1) % 13) + 1 = 12(Q)
-        // x = 13(K): ((13 - 1) % 13) + 1 = 13(K)
-        // x = 14(A): ((14 - 1) % 13) + 1 = 1(A)
-        return ((card - 1) % 13) + 1;
     }
 }

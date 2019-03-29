@@ -1,10 +1,6 @@
 package game;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Random;
+import java.util.*;
 
 /**
  * This is the game class of the Go Fish game.
@@ -15,28 +11,44 @@ import java.util.Random;
  */
 public class Game {
 
-	private static Queue<Integer> order = new LinkedList<>();
-	static int numPlayer = 0;
+	private Deque<Player> order;
+	private Player current;
+	private int numPlayers;
 	
-	public static int deckPos = 0;
-	public static int[] deck = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 
-			  			  		14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 
-			  			  		27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 
-			  			  		40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52 };
-	public static int matched = 0;
+	private int deckPos;
+	private int[] deck = {
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+			14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+			27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
+			40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52
+	};
+	private int matched;
+
+	private boolean ended;
 
 	/**
-	 * There is only a zero constructor because 
+	 * There is only a zero constructor because
 	 * it does not make sense to have a game object.
 	 * However it is responsible for resetting the game,
 	 * thus on instantiation, it resets the deck position, player count and order,
 	 * and it shuffles the deck.
 	 */
 	public Game() {
+		order = new LinkedList<>();
+		current = null;
+		numPlayers = 0;
 		deckPos = 0;
-		numPlayer = 0;
-		order.clear();
+		ended = false;
+		matched = 0;
+
 		shuffle();
+	}
+
+	public Player addPlayer(String name) {
+		Player player = new Player(this, name);
+		join(player);
+
+		return player;
 	}
 
 	/**
@@ -44,11 +56,11 @@ public class Game {
 	 * and it is added to the order list.
 	 * @return a number to this Player, order number
 	 */
-	public static int join() {
-		numPlayer++;
-		order.add(numPlayer);
-		
-		return numPlayer;
+	public int join(Player player) {
+		numPlayers++;
+		order.addLast(player);
+
+		return numPlayers;
 	}
 
 	/**
@@ -56,32 +68,28 @@ public class Game {
 	 * The first player is removed and returned, then added back to the queue.
 	 * @return a player number
 	 */
-	static int playerTurn() {
-		Integer first = order.remove();
-		
-		order.add(first);
+	public Player nextPlayer() {
+		current = order.removeFirst();
 
-		return first;
+		order.addLast(current);
+
+		return current;
 	}
-	
+
 	/**
 	 * Remove a player from the order queue once they have no cards
-	 * @param n the player whose hand is empty
+	 * @param player the player whose hand is empty
 	 */
-	static void removePlayer(int n) {
-		Iterator<Integer> itr = order.iterator();
-		while(itr.hasNext()) {
-			if(itr.next() == n) {
-				itr.remove();
-			}
-		}
+	@Deprecated
+	public void removePlayer(Player player) {
+		order.removeIf(player1 -> player1 == player);
 	}
 
 	/**
 	 * Shuffles the elements of the deck into different
 	 * indices on the array.
 	 */
-	public static void shuffle() {
+	public void shuffle() {
 		Random rnd = new Random();
 
 		for (int i = 0; i < deck.length; i++) {
@@ -91,9 +99,9 @@ public class Game {
 			 */
 			int n = rnd.nextInt(deck.length);
 
-			
+
 			//  basic swapping between 2 indices in an array
-			 
+
 			int temp = deck[n];
 			deck[n] = deck[i];
 			deck[i] = temp;
@@ -105,24 +113,55 @@ public class Game {
 	 * Each player receives 5 card.
 	 * @return a linked list of card for this player
 	 */
-	public static LinkedList<Integer> createHand() {
+	public LinkedList<Integer> createHand() {
 		LinkedList<Integer> n = new LinkedList<>();
-		
+
 		for(int i = 0; i < 5; i++) {
-			n.add(deck[deckPos]); 
-			deckPos++;
+			n.add(draw());
 		}
-		
+
 		Collections.sort(n);
-		
+
 		return n;
 	}
-	
+
 	/**
 	 * Called when there is 4-of-a-kind by a player.
-	 * 
+	 *
 	 */
-	public static void totalMatched() {
+	public void matched() {
 		matched++;
+	}
+
+	public int getMatched() {
+		return matched;
+	}
+
+	public int numPlayers() {
+		return numPlayers;
+	}
+
+	public int deckPos() {
+		return deckPos;
+	}
+
+	public int cardsLeft() {
+		return deck.length;
+	}
+
+	public int draw() {
+		return convert(deck[deckPos++]);
+	}
+
+	public boolean isEnded() {
+		return ended;
+	}
+
+	private int convert(int card) {
+		// x = 1(A): ((1 - 1) % 13) + 1 = 1(A)
+		// x = 12(Q): ((12 - 1) % 13) + 1 = 12(Q)
+		// x = 13(K): ((13 - 1) % 13) + 1 = 13(K)
+		// x = 14(A): ((14 - 1) % 13) + 1 = 1(A)
+		return ((card - 1) % 13) + 1;
 	}
 }
