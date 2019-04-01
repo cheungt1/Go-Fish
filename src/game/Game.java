@@ -127,16 +127,23 @@ public class Game implements Serializable {
 	}
 	
 	public boolean isEnded() {
-		boolean temp = false;
+		boolean allInactive = true;
 		
 		for(Player p: players) {
+			/*
+			 * if there is one player that is active,
+			 * then allInActive would be false
+			 */
 			if(p.isActive()) {
-				temp = true;
+				allInactive = false;
 			}
 			break;
 		}
-			
-		return (matched == 13) || !temp;
+		/*
+		 * game ends when there are 13 matched (all cards are found)
+		 * or when all players are inactive
+		 */
+		return (matched == 13) || allInactive;
 	}
 	
 	/**
