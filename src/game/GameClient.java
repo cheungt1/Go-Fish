@@ -39,7 +39,7 @@ public class GameClient {
 
 //			System.out.println(is.readUTF()); // joined message
 
-            while (game.getMatched() != 13) {
+            while (game.isEnded()) {
                 System.out.println("Your hand: " + hand);
                 if ((hand.size() != 0) && (game.nextPlayer().equals(me))) {
                     int cardsRec;
