@@ -6,6 +6,7 @@ import java.io.IOException;
 
 public class Util {
 
+    // TODO: change DataOutputStream to OOS
     public static void writeWithThread(DataOutputStream os, String msg) {
         // start a thread
         new Thread(() -> {

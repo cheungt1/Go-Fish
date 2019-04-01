@@ -34,13 +34,14 @@ public class GameClient {
 //			writeWithThread(os, GUI.getUserName());
 			writeWithThread(os, input.nextLine());
 
-			Player me = (Player) (new ObjectInputStream(is).readObject());
-			List<Integer> hand = me.getHand();
-
+			ObjectInputStream ois = new ObjectInputStream(is);
 //			System.out.println(is.readUTF()); // joined message
 
-            while (!game.isEnded()) {
-                System.out.println("Your hand: " + hand);
+			while (!game.isEnded()) {
+				Player me = (Player) (ois.readObject());
+				List<Integer> hand = me.getHand();
+
+				System.out.println("Your hand: " + hand);
                 if ((hand.size() != 0) && (game.nextPlayer().equals(me))) {
                     int cardsRec;
 
@@ -60,11 +61,13 @@ public class GameClient {
 
 						writeWithThread(os, selection);
 
-						String resultMessage = is.readUTF();
+						String resultMessage = ois.readUTF();
+						System.out.println("read");
 						String[] rm = resultMessage.split("[\\s+]");
 						cardsRec = Integer.parseInt(rm[3]);
                         System.out.printf("[Received %d %d's]%n", cardsRec, card);
 
+						System.out.printf("My hand: [%s]\n", me.getHand());
                         input.nextLine();
 					} while (cardsRec != 0);
 
