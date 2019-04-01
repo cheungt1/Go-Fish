@@ -15,6 +15,7 @@ public class Game implements Serializable {
 	private Deque<Player> players;
 	private Player current;
 	private int numPlayers;
+	private boolean isEnded;
 	
 	private int deckPos;
 	private int[] deck = {
@@ -124,7 +125,20 @@ public class Game implements Serializable {
 
 		return n;
 	}
-
+	
+	public boolean isEnded() {
+		boolean temp = false;
+		
+		for(Player p: players) {
+			if(p.isActive()) {
+				temp = true;
+			}
+			break;
+		}
+			
+		return (matched == 13) || !temp;
+	}
+	
 	/**
 	 * Called when there is 4-of-a-kind by a player.
 	 *
@@ -151,10 +165,6 @@ public class Game implements Serializable {
 
 	public int draw() {
 		return convert(deck[deckPos++]);
-	}
-
-	public boolean isEnded() {
-		return ended;
 	}
 
 	public List<Player> players() {
