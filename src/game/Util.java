@@ -3,16 +3,40 @@ package game;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 
 public class Util {
 
-    // TODO: change DataOutputStream to OOS
-    public static void writeWithThread(DataOutputStream os, String msg) {
+    public static void writeString(DataOutputStream os, String msg) {
         // start a thread
         new Thread(() -> {
             try {
                 os.writeUTF(msg); // write message
                 os.flush(); // flush os
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    public static void writeString(ObjectOutputStream oos, String msg) {
+        new Thread(() -> {
+            try {
+                oos.writeUTF(msg);
+                oos.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    public static void writeObject(ObjectOutputStream oos, Object o) {
+        new Thread(() -> {
+            try {
+                oos.writeObject(o);
+                System.out.println("obj written");
+                oos.flush();
+                oos.reset();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -28,6 +52,9 @@ public class Util {
 
         // the input stream to be read from
         private DataInputStream is;
+
+        // most recent message received
+        private String message;
 
         /**
          * Create a new Reader.
@@ -52,6 +79,10 @@ public class Util {
                 System.err.println("Reading Error");
                 ioe.printStackTrace();
             }
+        }
+
+        public String msg() {
+            return message;
         }
     }
 }

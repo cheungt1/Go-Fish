@@ -6,7 +6,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-import static game.Util.writeWithThread;
+import static game.Util.*;
 
 public class GameServer {
 
@@ -31,29 +31,33 @@ public class GameServer {
     public void start() {
         new Thread(() -> {
             try {
-                System.out.printf("[Waiting for connection at port %d ...]%n", port);
+                System.out.printf("[Waiting for connection at port %d ...]\n", port);
 
                 while (true) {
                     // accept player
                     Socket playerSocket = serverSocket.accept();
 
                     // retrieve i/o streams
-                    DataInputStream is = new DataInputStream(playerSocket.getInputStream());
                     DataOutputStream os = new DataOutputStream(playerSocket.getOutputStream());
+                    DataInputStream is = new DataInputStream(playerSocket.getInputStream());
 
                     // ask for username
-                    writeWithThread(os, "[Welcome to Go Fish! Please enter your name]: ");
+                    writeString(os, "[Welcome to Go Fish! Please enter your name]: ");
 
                     String username = is.readUTF();
-
                     Player newPlayer = game.addPlayer(username);
+                    // ensures that the client can find this new player
+                    while (game.findPlayer(username) == null)
+                        Thread.sleep(1);
+                    os.writeInt(1); // signal the client
 
-//                    writeWithThread(os, String.format("[Hello, %s!]", username));
-                    System.out.printf("[%s has joined!\n]", username);
+
+//                    writeString(os, String.format("[Hello, %s!]", username));
+                    System.out.printf("[%s has joined!]\n", username);
 
                     new Thread(new PlayerHandler(newPlayer, is, os)).start();
                 }
-            } catch (IOException e) {
+            } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }
         }).start();
@@ -89,28 +93,25 @@ public class GameServer {
         DataInputStream is;
         DataOutputStream os;
 
-        ObjectOutputStream oos;
-
-        PlayerHandler(Player player, DataInputStream is, DataOutputStream os) throws IOException {
+        PlayerHandler(Player player, DataInputStream is, DataOutputStream os) {
             this.player = player;
             this.is = is;
             this.os = os;
-            this.oos = new ObjectOutputStream(os);
+
 
             players[numPlayers++] = this;
-//            System.out.println(game.players());
         }
 
         @Override
         public void run() {
             try {
                 while (true) {
-                    oos.writeObject(player);
-                    if (!game.isEnded()) {
+                    if (!game.isEnded() && is.available() > 0) {
                         String selection = is.readUTF();
-//                        System.out.printf("[%s]%n", selection);
 
                         String[] slct = selection.split("[\\s+]");
+
+                        // TODO: handle invalid player name
                         Player other = game.findPlayer(slct[0]);
                         int targetCard = Integer.parseInt(slct[1]);
 
@@ -124,11 +125,11 @@ public class GameServer {
                             player.goFish();
                         }
 
-                        writeWithThread(os, String.format("[Player %s has %d %s's!]%n", slct[0], n, slct[1]));
+                        writeString(os, String.format("[Player %s has %d %s's!]%n", slct[0], n, slct[1]));
                         System.out.println("wrote");
                     }
                 }
-            } catch (Exception e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }

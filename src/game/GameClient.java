@@ -23,25 +23,25 @@ public class GameClient {
 		try {
 			Socket socket = new Socket(server.getIP(), server.getPort());
 
-			DataInputStream is = new DataInputStream(socket.getInputStream());
 			DataOutputStream os = new DataOutputStream(socket.getOutputStream());
+			DataInputStream is = new DataInputStream(socket.getInputStream());
 
 			Scanner input = new Scanner(System.in);
 
 			System.out.print(is.readUTF()); // welcoming message
 
 			// send player name to server
-//			writeWithThread(os, GUI.getUserName());
-			writeWithThread(os, input.nextLine());
+//			writeString(os, GUI.getUserName());
+			String playerName = input.nextLine();
+			writeString(os, playerName);
 
-			ObjectInputStream ois = new ObjectInputStream(is);
-//			System.out.println(is.readUTF()); // joined message
+			is.readInt(); // get signal from server
+			Player me = server.getGame().findPlayer(playerName);
+			List<Integer> hand = me.getHand();
 
 			while (!game.isEnded()) {
-				Player me = (Player) (ois.readObject());
-				List<Integer> hand = me.getHand();
-
 				System.out.println("Your hand: " + hand);
+
                 if ((hand.size() != 0) && (game.nextPlayer().equals(me))) {
                     int cardsRec;
 
@@ -59,15 +59,15 @@ public class GameClient {
 
 						String selection =  playerChoice+ " " + card;
 
-						writeWithThread(os, selection);
+						writeString(os, selection);
 
-						String resultMessage = ois.readUTF();
+						String resultMessage = is.readUTF();
 						System.out.println("read");
 						String[] rm = resultMessage.split("[\\s+]");
 						cardsRec = Integer.parseInt(rm[3]);
                         System.out.printf("[Received %d %d's]%n", cardsRec, card);
 
-						System.out.printf("My hand: [%s]\n", me.getHand());
+						System.out.printf("My hand: %s\n", me.getHand());
                         input.nextLine();
 					} while (cardsRec != 0);
 
