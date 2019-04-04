@@ -273,9 +273,9 @@ public class GUI extends Application
 		
 		//pInteraction Alignment	
 		translate(-20, -230, lblPlayerSection);
-		translate(-20, -185, rbPlayer3);
-		translate(-20, -155, rbPlayer4);
-		translate(-20, -125, rbPlayer2);
+		translate(-20, -185, rbPlayer2);
+		translate(-20, -155, rbPlayer3);
+		translate(-20, -125, rbPlayer4);
 		translate(-20, -75, lblCardSection);
 		translate(-20, -40, cbCardValues);
 		translate(-20, 35, imgCard);
@@ -294,7 +294,7 @@ public class GUI extends Application
 		translate(-375.5, 0, lblPlayer2Name);
 		
 		//Label actions set-up
-		//Click on the label to re-orient the label to read the player's name
+		//Click and hold on the label to re-orient the label to read the player's name
 		lblPlayer3Name.setOnMousePressed(e -> 
 		{
 			lblPlayer3Name.setRotate(0);
