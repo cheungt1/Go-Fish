@@ -174,7 +174,7 @@ public class Player implements Serializable {
      */
     public String getName() {
         return name;
-    }
+F    }
 
     public Game getGame() {
         return game;

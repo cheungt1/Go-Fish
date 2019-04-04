@@ -39,36 +39,36 @@ public class GameClient {
 
 //			System.out.println(is.readUTF()); // joined message
 
-            while (!game.isEnded()) {
-                System.out.println("Your hand: " + hand);
-                if ((hand.size() != 0) && (game.nextPlayer().equals(me))) {
-                    int cardsRec;
+			while (!game.isEnded()) {
+				System.out.println("Your hand: " + hand);
+				if ((hand.size() != 0) && (game.nextPlayer().equals(me))) {
+					int cardsRec;
 
-                    do {
-                        System.out.println("[It's my turn!]");
-                        System.out.println("[Choose a player to pick cards from]");
-                        System.out.println("Players: " + server.players());
+					do {
+						System.out.println("[It's my turn!]");
+						System.out.println("[Choose a player to pick cards from]");
+						System.out.println("Players: " + server.players());
 
 //						String playerChoice = GUI.getPlayerChoice();
-                        String playerChoice = input.nextLine();
+						String playerChoice = input.nextLine();
 
-                        System.out.println("[Pick a card]");
+						System.out.println("[Pick a card]");
 //						int card = Integer.parseInt(GUI.getCardValue());
-                        int card = input.nextInt();
+						int card = input.nextInt();
 
-						String selection =  playerChoice+ " " + card;
+						String selection = playerChoice + " " + card;
 
 						writeWithThread(os, selection);
 
 						String resultMessage = is.readUTF();
 						String[] rm = resultMessage.split("[\\s+]");
 						cardsRec = Integer.parseInt(rm[3]);
-                        System.out.printf("[Received %d %d's]%n", cardsRec, card);
+						System.out.printf("[Received %d %d's]%n", cardsRec, card);
 
-                        input.nextLine();
+						input.nextLine();
 					} while (cardsRec != 0);
 
-                    System.out.println("[Go Fish!]");
+					System.out.println("[Go Fish!]");
 				}
 			}
 

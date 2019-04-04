@@ -146,33 +146,6 @@ public class GUI extends Application
 					case "Ace":
 						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\1.png")));
 						break;
-					case "2":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\2.png")));
-						break;
-					case "3":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\3.png")));
-						break;
-					case "4":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\4.png")));
-						break;
-					case "5":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\5.png")));
-						break;
-					case "6":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\6.png")));
-						break;
-					case "7":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\7.png")));
-						break;
-					case "8":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\8.png")));
-						break;
-					case "9":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\9.png")));
-						break;
-					case "10":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\10.png")));
-						break;
 					case "Jack":
 						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\11.png")));
 						break;
@@ -181,6 +154,9 @@ public class GUI extends Application
 						break;
 					case "King":
 						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\13.png")));
+						break;
+					default:
+						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\" + cbCardValues.getValue() + ".png")));
 						break;
 				}
 			}
