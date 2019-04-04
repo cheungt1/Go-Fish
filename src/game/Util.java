@@ -3,7 +3,6 @@ package game;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 
 public class Util {
 
@@ -14,30 +13,19 @@ public class Util {
                 os.writeUTF(msg); // write message
                 os.flush(); // flush os
             } catch (IOException e) {
+                System.err.println("Write String failed");
                 e.printStackTrace();
             }
         }).start();
     }
 
-    public static void writeString(ObjectOutputStream oos, String msg) {
+    public static void writeInt(DataOutputStream os, int n) {
         new Thread(() -> {
             try {
-                oos.writeUTF(msg);
-                oos.flush();
+                os.writeInt(n);
+                os.flush();
             } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }).start();
-    }
-
-    public static void writeObject(ObjectOutputStream oos, Object o) {
-        new Thread(() -> {
-            try {
-                oos.writeObject(o);
-                System.out.println("obj written");
-                oos.flush();
-                oos.reset();
-            } catch (IOException e) {
+                System.err.println("WriteInt failed");
                 e.printStackTrace();
             }
         }).start();

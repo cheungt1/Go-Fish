@@ -17,7 +17,7 @@ public class GameClient {
 		start();
 	}
 
-	public void start() {
+	private void start() {
 		Game game = server.getGame();
 
 		try {
@@ -43,33 +43,28 @@ public class GameClient {
 				System.out.println("Your hand: " + hand);
 
                 if ((hand.size() != 0) && (game.nextPlayer().equals(me))) {
-                    int cardsRec;
+                    int cardsRecv;
 
                     do {
                         System.out.println("[It's my turn!]");
-                        System.out.println("[Choose a player to pick cards from]");
-                        System.out.println("Players: " + server.players());
+                        System.out.println(is.readUTF());
 
 //						String playerChoice = GUI.getPlayerChoice();
                         String playerChoice = input.nextLine();
+                        writeString(os, playerChoice);
 
-                        System.out.println("[Pick a card]");
+                        System.out.println(is.readUTF());
+
 //						int card = Integer.parseInt(GUI.getCardValue());
                         int card = input.nextInt();
+                        writeInt(os, card);
 
-						String selection =  playerChoice+ " " + card;
-
-						writeString(os, selection);
-
-						String resultMessage = is.readUTF();
-						System.out.println("read");
-						String[] rm = resultMessage.split("[\\s+]");
-						cardsRec = Integer.parseInt(rm[3]);
-                        System.out.printf("[Received %d %d's]%n", cardsRec, card);
-
+						cardsRecv = is.readInt();
+                        System.out.printf("[Received %d %d's]%n", cardsRecv, card);
 						System.out.printf("My hand: %s\n", me.getHand());
+
                         input.nextLine();
-					} while (cardsRec != 0);
+					} while (cardsRecv != 0);
 
                     System.out.println("[Go Fish!]");
 				}

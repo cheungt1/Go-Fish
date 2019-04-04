@@ -106,15 +106,21 @@ public class GameServer {
         public void run() {
             try {
                 while (true) {
-                    if (!game.isEnded() && is.available() > 0) {
-                        String selection = is.readUTF();
+//                    System.out.println("ended = " + game.isEnded());
+//                    System.out.println("players = " + players());
 
-                        String[] slct = selection.split("[\\s+]");
+                    if (!game.isEnded()) {
+                        Player other;
+                        String targetName;
+                        do {
+                            System.out.println("test");
+                            writeString(os, "Choose a player from " + players());
+                            targetName = is.readUTF();
+                            other = game.findPlayer(targetName);
+                        } while (other == null);
 
-                        // TODO: handle invalid player name
-                        Player other = game.findPlayer(slct[0]);
-                        int targetCard = Integer.parseInt(slct[1]);
-
+                        writeString(os, "[Request for a card]");
+                        int targetCard = is.readInt();
                         List<Integer> myHand = player.getHand();
                         List<Integer> otherHand = other.getHand();
 
@@ -125,8 +131,7 @@ public class GameServer {
                             player.goFish();
                         }
 
-                        writeString(os, String.format("[Player %s has %d %s's!]%n", slct[0], n, slct[1]));
-                        System.out.println("wrote");
+                        writeInt(os, n);
                     }
                 }
             } catch (IOException e) {
