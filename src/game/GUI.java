@@ -11,6 +11,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 public class GUI extends Application
 {
@@ -74,6 +75,9 @@ public class GUI extends Application
 		//Button initialization
 		Button btConfirmAction = new Button("Ask for that card");
 		Button btQuit = new Button("Leave Game");
+		
+		//Stage modifications
+		playingStage.initStyle(StageStyle.UNDECORATED);
 		
 		//Sets up a toggle group so only one option can be true out of the three
 		rbPlayer2.setToggleGroup(rbPlayers);
@@ -146,33 +150,6 @@ public class GUI extends Application
 					case "Ace":
 						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\1.png")));
 						break;
-					case "2":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\2.png")));
-						break;
-					case "3":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\3.png")));
-						break;
-					case "4":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\4.png")));
-						break;
-					case "5":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\5.png")));
-						break;
-					case "6":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\6.png")));
-						break;
-					case "7":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\7.png")));
-						break;
-					case "8":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\8.png")));
-						break;
-					case "9":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\9.png")));
-						break;
-					case "10":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\10.png")));
-						break;
 					case "Jack":
 						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\11.png")));
 						break;
@@ -181,6 +158,10 @@ public class GUI extends Application
 						break;
 					case "King":
 						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\13.png")));
+						break;
+					default:
+						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + 
+								"\\git\\Go-Fish\\card\\" + cbCardValues.getValue() + ".png")));
 						break;
 				}
 			}
@@ -203,11 +184,14 @@ public class GUI extends Application
 			StackPane pConfirm = new StackPane();
 			
 			//Create a buttons for user decision
-			Button btYes = new Button("Yes, I want to leave");
-			Button btNo = new Button("No, let me back in the game");
+			Button btYes = new Button("Yes");
+			Button btNo = new Button("No");
 			
 			//Creates a label to prompt a decision from user
 			Label lblConfirm = new Label("Do you want to leave this game?");
+			
+			//Stage modifications
+			confirmStage.initStyle(StageStyle.UNDECORATED);
 			
 			//Sets font size for all components
 			lblConfirm.setFont(f18);
@@ -231,13 +215,17 @@ public class GUI extends Application
 			
 			//Translates the components
 			pConfirm.setAlignment(Pos.CENTER);
-			translate(-128, 0, btYes);
-			translate(128, 0, btNo);
-			translate(0, -64, lblConfirm);
+			translate(-100, 32, btYes);
+			translate(100, 32, btNo);
+			translate(0, -32, lblConfirm);
+			
+			//Size modifications to buttons
+			btYes.setPrefWidth(100);
+			btNo.setPrefWidth(100);
 			
 			
 			//Creates a scene for the stage, confirmStage, and show it
-			Scene confirmScene = new Scene(pConfirm, 512, 256);
+			Scene confirmScene = new Scene(pConfirm, 384, 192);
 			confirmStage.setScene(confirmScene);
 			confirmStage.setTitle("Are you sure you wanna quit?");
 			confirmStage.show();
@@ -323,7 +311,7 @@ public class GUI extends Application
 		});
 		//pVisual background set-up
 		background.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\GUIGraphic\\tableTexture.jpg")));
-		translate(-30, 0, background);
+		translate(-20, 0, background);
 		
 		//pVisual text background set-up (Used to see text / testing)
 		lblUserName.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
@@ -335,7 +323,7 @@ public class GUI extends Application
 		translate(-465, 0, lblRecentAction);
 		
 		//Create Scene and set-up stage
-		Scene scene = new Scene(overallPane, 1024, 512);
+		Scene scene = new Scene(overallPane, 1024, 532);
 		playingStage.setScene(scene);
 		playingStage.setTitle("Go Fish!");
 	}
@@ -351,6 +339,9 @@ public class GUI extends Application
 		Label lblMessage2 = new Label("Please Enter Your Name!");
 		
 		Button btConfirm = new Button("Play the Game!");
+		
+		//Stage modifications
+		startStage.initStyle(StageStyle.UNDECORATED);
 		
 		//Setting font sizes
 		lblMessage1.setFont(f18);
