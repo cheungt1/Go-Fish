@@ -6,129 +6,136 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-import static game.Util.writeWithThread;
+import static game.Util.*;
 
 public class GameServer {
 
-	private final Game game;
+    private final Game game;
 
-	private final int port;
-	private final String IP;
-	private final ServerSocket serverSocket;
+    private final int port;
+    private final String IP;
+    private final ServerSocket serverSocket;
 
-	private PlayerHandler[] players;
-	private int numPlayers;
+    private PlayerHandler[] players;
+    private int numPlayers;
 
-	public GameServer(Game game, int port) throws IOException {
-		this.game = game;
-		this.port = port;
-		this.players = new PlayerHandler[4];
-		this.numPlayers = 0;
-		this.serverSocket = new ServerSocket(port);
-		this.IP = serverSocket.getInetAddress().getHostAddress();
-	}
+    public GameServer(Game game, int port) throws IOException {
+        this.game = game;
+        this.port = port;
+        this.players = new PlayerHandler[4];
+        this.numPlayers = 0;
+        this.serverSocket = new ServerSocket(port);
+        this.IP = serverSocket.getInetAddress().getHostAddress();
+    }
 
-	public void start() {
-		new Thread(() -> {
-			try {
-				System.out.printf("[Waiting for connection at port %d ...]%n", port);
+    public void start() {
+        new Thread(() -> {
+            try {
+                System.out.printf("[Waiting for connection at port %d ...]\n", port);
 
-				while (true) {
-					// accept player
-					Socket playerSocket = serverSocket.accept();
+                while (true) {
+                    // accept player
+                    Socket playerSocket = serverSocket.accept();
 
-					// retrieve i/o streams
-					DataInputStream is = new DataInputStream(playerSocket.getInputStream());
-					DataOutputStream os = new DataOutputStream(playerSocket.getOutputStream());
+                    // retrieve i/o streams
+                    DataOutputStream os = new DataOutputStream(playerSocket.getOutputStream());
+                    DataInputStream is = new DataInputStream(playerSocket.getInputStream());
 
-					// ask for username
-					writeWithThread(os, "[Welcome to Go Fish! Please enter your name]: ");
+                    // ask for username
+                    writeString(os, "[Welcome to Go Fish! Please enter your name]: ");
 
-					String username = is.readUTF();
+                    String username = is.readUTF();
+                    Player newPlayer = game.addPlayer(username);
+                    // ensures that the client can find this new player
+                    while (game.findPlayer(username) == null)
+                        Thread.sleep(1);
+                    os.writeInt(1); // signal the client
 
-					Player newPlayer = game.addPlayer(username);
-					new ObjectOutputStream(os).writeObject(newPlayer);
 
-//                    writeWithThread(os, String.format("[Hello, %s!]", username));
-					System.out.printf("%s has joined!", username);
+//                    writeString(os, String.format("[Hello, %s!]", username));
+                    System.out.printf("[%s has joined!]\n", username);
 
-					new Thread(new PlayerHandler(newPlayer, is, os)).start();
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}).start();
-	}
+                    new Thread(new PlayerHandler(newPlayer, is, os)).start();
+                }
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
 
-	public Game getGame() {
-		return game;
-	}
+    public Game getGame() {
+        return game;
+    }
 
-	public int getPort() {
-		return port;
-	}
+    public int getPort() {
+        return port;
+    }
 
-	public String getIP() {
-		return IP;
-	}
+    public String getIP() {
+        return IP;
+    }
 
-	public List<String> players() {
-		List<String> names = new ArrayList<>();
-		for (PlayerHandler handler : players) {
-			if (handler != null) {
-				names.add(handler.getPlayer().getName());
-			}
-		}
+    public List<String> players() {
+        List<String> names = new ArrayList<>();
+        for (PlayerHandler handler : players) {
+            if (handler != null) {
+                names.add(handler.getPlayer().getName());
+            }
+        }
 
-		return names;
-	}
+        return names;
+    }
 
-	private class PlayerHandler implements Runnable {
+    private class PlayerHandler implements Runnable {
 
-		Player player;
+        Player player;
 
-		DataInputStream is;
-		DataOutputStream os;
+        DataInputStream is;
+        DataOutputStream os;
 
-		PlayerHandler(Player player, DataInputStream is, DataOutputStream os) {
-			this.is = is;
-			this.os = os;
-			this.player = player;
+        PlayerHandler(Player player, DataInputStream is, DataOutputStream os) {
+            this.player = player;
+            this.is = is;
+            this.os = os;
 
-			players[numPlayers++] = this;
-//            System.out.println(game.players());
-		}
 
-		@Override
-		public void run() {
-			try {
-				while (true) {
-					String selection = is.readUTF();
-					System.out.printf("[%s]%n", selection);
+            players[numPlayers++] = this;
+        }
 
-					String[] slct = selection.split("[\\s+]");
-					Player other = game.findPlayer(slct[0]);
-					int targetCard = Integer.parseInt(slct[1]);
+        @Override
+        public void run() {
+            try {
+                while (true) {
+                    if (!game.isEnded() && is.available() > 0) {
+                        String selection = is.readUTF();
 
-					List<Integer> myHand = player.getHand();
-					List<Integer> otherHand = other.getHand();
+                        String[] slct = selection.split("[\\s+]");
 
-					int n;
-					if ((n = other.take(targetCard)) > 0) {
-						player.give(targetCard, n);
-					} else {
-						player.goFish();
-					}
+                        // TODO: handle invalid player name
+                        Player other = game.findPlayer(slct[0]);
+                        int targetCard = Integer.parseInt(slct[1]);
 
-					writeWithThread(os, String.format("[Player %s has %d %s's!]%n", slct[0], n, slct[1]));
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
+                        List<Integer> myHand = player.getHand();
+                        List<Integer> otherHand = other.getHand();
 
-		public Player getPlayer() {
-			return player;
-		}
-	}
+                        int n;
+                        if ((n = other.take(targetCard)) > 0) {
+                            player.give(targetCard, n);
+                        } else {
+                            player.goFish();
+                        }
+
+                        writeString(os, String.format("[Player %s has %d %s's!]%n", slct[0], n, slct[1]));
+                        System.out.println("wrote");
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public Player getPlayer() {
+            return player;
+        }
+    }
 }

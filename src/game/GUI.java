@@ -146,6 +146,33 @@ public class GUI extends Application
 					case "Ace":
 						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\1.png")));
 						break;
+					case "2":
+						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\2.png")));
+						break;
+					case "3":
+						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\3.png")));
+						break;
+					case "4":
+						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\4.png")));
+						break;
+					case "5":
+						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\5.png")));
+						break;
+					case "6":
+						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\6.png")));
+						break;
+					case "7":
+						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\7.png")));
+						break;
+					case "8":
+						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\8.png")));
+						break;
+					case "9":
+						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\9.png")));
+						break;
+					case "10":
+						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\10.png")));
+						break;
 					case "Jack":
 						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\11.png")));
 						break;
@@ -154,9 +181,6 @@ public class GUI extends Application
 						break;
 					case "King":
 						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\13.png")));
-						break;
-					default:
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\" + cbCardValues.getValue() + ".png")));
 						break;
 				}
 			}
@@ -249,9 +273,9 @@ public class GUI extends Application
 		
 		//pInteraction Alignment	
 		translate(-20, -230, lblPlayerSection);
-		translate(-20, -185, rbPlayer3);
-		translate(-20, -155, rbPlayer4);
-		translate(-20, -125, rbPlayer2);
+		translate(-20, -185, rbPlayer2);
+		translate(-20, -155, rbPlayer3);
+		translate(-20, -125, rbPlayer4);
 		translate(-20, -75, lblCardSection);
 		translate(-20, -40, cbCardValues);
 		translate(-20, 35, imgCard);
@@ -270,7 +294,7 @@ public class GUI extends Application
 		translate(-375.5, 0, lblPlayer2Name);
 		
 		//Label actions set-up
-		//Click on the label to re-orient the label to read the player's name
+		//Click and hold on the label to re-orient the label to read the player's name
 		lblPlayer3Name.setOnMousePressed(e -> 
 		{
 			lblPlayer3Name.setRotate(0);

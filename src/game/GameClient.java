@@ -23,52 +23,55 @@ public class GameClient {
 		try {
 			Socket socket = new Socket(server.getIP(), server.getPort());
 
-			DataInputStream is = new DataInputStream(socket.getInputStream());
 			DataOutputStream os = new DataOutputStream(socket.getOutputStream());
+			DataInputStream is = new DataInputStream(socket.getInputStream());
 
 			Scanner input = new Scanner(System.in);
 
 			System.out.print(is.readUTF()); // welcoming message
 
 			// send player name to server
-//			writeWithThread(os, GUI.getUserName());
-			writeWithThread(os, input.nextLine());
+//			writeString(os, GUI.getUserName());
+			String playerName = input.nextLine();
+			writeString(os, playerName);
 
-			Player me = (Player) (new ObjectInputStream(is).readObject());
+			is.readInt(); // get signal from server
+			Player me = server.getGame().findPlayer(playerName);
 			List<Integer> hand = me.getHand();
-
-//			System.out.println(is.readUTF()); // joined message
 
 			while (!game.isEnded()) {
 				System.out.println("Your hand: " + hand);
-				if ((hand.size() != 0) && (game.nextPlayer().equals(me))) {
-					int cardsRec;
 
-					do {
-						System.out.println("[It's my turn!]");
-						System.out.println("[Choose a player to pick cards from]");
-						System.out.println("Players: " + server.players());
+                if ((hand.size() != 0) && (game.nextPlayer().equals(me))) {
+                    int cardsRec;
+
+                    do {
+                        System.out.println("[It's my turn!]");
+                        System.out.println("[Choose a player to pick cards from]");
+                        System.out.println("Players: " + server.players());
 
 //						String playerChoice = GUI.getPlayerChoice();
-						String playerChoice = input.nextLine();
+                        String playerChoice = input.nextLine();
 
-						System.out.println("[Pick a card]");
+                        System.out.println("[Pick a card]");
 //						int card = Integer.parseInt(GUI.getCardValue());
-						int card = input.nextInt();
+                        int card = input.nextInt();
 
-						String selection = playerChoice + " " + card;
+						String selection =  playerChoice+ " " + card;
 
-						writeWithThread(os, selection);
+						writeString(os, selection);
 
 						String resultMessage = is.readUTF();
+						System.out.println("read");
 						String[] rm = resultMessage.split("[\\s+]");
 						cardsRec = Integer.parseInt(rm[3]);
-						System.out.printf("[Received %d %d's]%n", cardsRec, card);
+                        System.out.printf("[Received %d %d's]%n", cardsRec, card);
 
-						input.nextLine();
+						System.out.printf("My hand: %s\n", me.getHand());
+                        input.nextLine();
 					} while (cardsRec != 0);
 
-					System.out.println("[Go Fish!]");
+                    System.out.println("[Go Fish!]");
 				}
 			}
 
