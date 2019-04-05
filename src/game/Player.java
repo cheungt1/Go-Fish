@@ -141,9 +141,9 @@ public class Player {
         this.active = active;
 
     	// if the player is not active, remove from order queue
-    	if(!active) {
+    	/*if (!active) {
     		game.removePlayer(this);
-    	}
+    	}*/
     }
 
     /**

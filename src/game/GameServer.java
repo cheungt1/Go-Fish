@@ -1,34 +1,43 @@
 package game;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-import static game.Util.*;
+import static game.Util.writeInt;
+import static game.Util.writeString;
 
 public class GameServer {
 
-    private final Game game;
+    private static Game game;
 
-    private final int port;
-    private final String IP;
-    private final ServerSocket serverSocket;
+    private static ServerSocket serverSocket;
+    private static String IP;
+    private static int port;
 
-    private PlayerHandler[] players;
-    private int numPlayers;
+    private static PlayerHandler[] players;
+    private static int numPlayers;
 
-    public GameServer(Game game, int port) throws IOException {
-        this.game = game;
-        this.port = port;
-        this.players = new PlayerHandler[4];
-        this.numPlayers = 0;
-        this.serverSocket = new ServerSocket(port);
-        this.IP = serverSocket.getInetAddress().getHostAddress();
+    static {
+        game = new Game();
+        port = 8000;
+
+        try {
+            serverSocket = new ServerSocket(port);
+            IP = serverSocket.getInetAddress().getHostAddress();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        players = new PlayerHandler[4];
+        numPlayers = game.numPlayers();
     }
 
-    public void start() {
+    public static void start() {
         new Thread(() -> {
             try {
                 System.out.printf("[Waiting for connection at port %d ...]\n", port);
@@ -63,19 +72,19 @@ public class GameServer {
         }).start();
     }
 
-    public Game getGame() {
+    public static Game getGame() {
         return game;
     }
 
-    public int getPort() {
+    public static int getPort() {
         return port;
     }
 
-    public String getIP() {
+    public static String getIP() {
         return IP;
     }
 
-    public List<String> players() {
+    public static List<String> players() {
         List<String> names = new ArrayList<>();
         for (PlayerHandler handler : players) {
             if (handler != null) {
@@ -86,7 +95,7 @@ public class GameServer {
         return names;
     }
 
-    private class PlayerHandler implements Runnable {
+    private static class PlayerHandler implements Runnable {
 
         Player player;
 
@@ -106,9 +115,6 @@ public class GameServer {
         public void run() {
             try {
                 while (true) {
-//                    System.out.println("ended = " + game.isEnded());
-//                    System.out.println("players = " + players());
-
                     if (!game.isEnded()) {
                         Player other;
                         String targetName;

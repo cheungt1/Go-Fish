@@ -12,13 +12,12 @@ import static game.Util.writeString;
 
 public class GameClient {
 
-	private GameServer server;
+//	private GameServer server;
 	private Socket socket;
 
-	public GameClient(GameServer server) throws IOException {
-//		this(server.getIP(), server.getPort());
-		this.server = server;
-	}
+	public GameClient() throws IOException {
+	    this(GameServer.getIP(), GameServer.getPort());
+    }
 
     /**
      * Create a game client with the given host name and port.
@@ -26,17 +25,14 @@ public class GameClient {
      * @param host  the host name or IP address
      * @param port  the port number
      * @throws IOException  for any errors regards to creating the socket
-     * @deprecated unable to retrieve a GameServer object based on host name
-     *          and port number (will be fixed)
      */
-	@Deprecated
 	public GameClient(String host, int port) throws IOException {
-		Socket socket = new Socket(host, port);
+		socket = new Socket(host, port);
 		start();
 	}
 
 	private void start() {
-		Game game = server.getGame();
+		Game game = GameServer.getGame();
 
 		try {
 			DataOutputStream os = new DataOutputStream(socket.getOutputStream());
@@ -52,7 +48,7 @@ public class GameClient {
 			writeString(os, playerName);
 
 			is.readInt(); // get signal from server
-			Player me = server.getGame().findPlayer(playerName);
+			Player me = GameServer.getGame().findPlayer(playerName);
 			List<Integer> hand = me.getHand();
 
 			System.out.println("Your hand: " + hand);
@@ -94,7 +90,7 @@ public class GameClient {
 		}
 	}
 
-	public GameServer getServer() {
+	/*public GameServer getServer() {
 		return server;
-	}
+	}*/
 }
