@@ -108,7 +108,8 @@ public class Game implements Serializable {
 			deck[i] = temp;
 		}
 	}
-
+	
+	
 	/**
 	 * When a player joined, their first hand is created.
 	 * Each player receives 5 card.

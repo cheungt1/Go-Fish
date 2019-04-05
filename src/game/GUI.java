@@ -37,6 +37,9 @@ public class GUI extends Application
 	Font f18 = new Font("System", 18);
 	Font f20 = new Font("System", 20);
 	
+	//Creates card images
+	ImageView imgCardBack = new ImageView();
+	
 	//Global player name to be used throughout various methods
 	String userName = "";
 	Label lblUserName = new Label(userName); //Used to display the user's name
@@ -86,21 +89,6 @@ public class GUI extends Application
 		
 		rbPlayer2.setSelected(true);
 		
-		//Sets unnecessary radio buttons invisible
-		//rbPlayer3.setVisible(false);
-		//rbPlayer4.setVisible(false);
-		
-		//Sets the other radio buttons' visibility to the correct state, if needed
-		if(game.numPlayers() > 2)
-		{
-			rbPlayer3.setVisible(true);
-			
-			if(game.numPlayers() == 4)
-			{
-				rbPlayer4.setVisible(true);
-			}
-		}
-		
 		//Sets up ComboBox's values
 		cbCardValues.getItems().addAll("Ace", "2", "3", "4", "5", "6", "7", "8", "9", "Jack", "Queen", "King");
 		
@@ -140,6 +128,10 @@ public class GUI extends Application
 		cbCardValues.setValue("Ace");
 		
 		ImageView imgCard = new ImageView();
+		ImageView imgCardBack1 = new ImageView(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
+		ImageView imgCardBack2 = new ImageView(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
+		ImageView imgCardBack3 = new ImageView(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
+		
 		
 		cbCardValues.setOnAction(e -> 
 		{
@@ -198,6 +190,8 @@ public class GUI extends Application
 			btYes.setFont(f16);
 			btNo.setFont(f16);
 			
+			btYes.setDefaultButton(true);
+			
 			//Creates actions for the buttons
 			btYes.setOnAction(f ->
 			{
@@ -249,7 +243,7 @@ public class GUI extends Application
 		
 		//Adding all components into panes
 		pInteraction.getChildren().addAll(lblPlayerScore, lblPlayerSection, lblCardSection, imgCard, rbPlayer2, rbPlayer3, rbPlayer4, cbCardValues, btConfirmAction, btQuit);
-		pVisual.getChildren().addAll(background, lblUserName, lblPlayer2Name, lblPlayer3Name, lblPlayer4Name);
+		pVisual.getChildren().addAll(background, imgCardBack1, imgCardBack2, imgCardBack3, lblUserName, lblPlayer2Name, lblPlayer3Name, lblPlayer4Name);
 		pTextLog.getChildren().addAll(lblRecentAction);
 		
 		overallPane.setTop(pTextLog);
@@ -280,6 +274,10 @@ public class GUI extends Application
 		translate(315.5, 0, lblPlayer4Name);
 		lblPlayer2Name.setRotate(90);
 		translate(-375.5, 0, lblPlayer2Name);
+		
+		translate(-27, 0, imgCardBack1);
+		translate(-25, -2, imgCardBack2);
+		translate(-23, -4, imgCardBack3);
 		
 		//Label actions set-up
 		//Click and hold on the label to re-orient the label to read the player's name
@@ -326,6 +324,7 @@ public class GUI extends Application
 		Scene scene = new Scene(overallPane, 1024, 532);
 		playingStage.setScene(scene);
 		playingStage.setTitle("Go Fish!");
+		
 	}
 	
 	//Creates the first box that a player would see
@@ -444,4 +443,6 @@ public class GUI extends Application
 	{
 		lblPlayerScore.setText("Your Score: " + playerScore);
 	}
+	
+	
 }
