@@ -16,9 +16,20 @@ public class GameClient {
 	private Socket socket;
 
 	public GameClient(GameServer server) throws IOException {
-		this(server.getIP(), server.getPort());
+//		this(server.getIP(), server.getPort());
+		this.server = server;
 	}
 
+    /**
+     * Create a game client with the given host name and port.
+     *
+     * @param host  the host name or IP address
+     * @param port  the port number
+     * @throws IOException  for any errors regards to creating the socket
+     * @deprecated unable to retrieve a GameServer object based on host name
+     *          and port number (will be fixed)
+     */
+	@Deprecated
 	public GameClient(String host, int port) throws IOException {
 		Socket socket = new Socket(host, port);
 		start();
