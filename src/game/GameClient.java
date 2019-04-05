@@ -1,19 +1,26 @@
 package game;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.Socket;
 import java.util.List;
 import java.util.Scanner;
 
-import static game.Util.*;
+import static game.Util.writeInt;
+import static game.Util.writeString;
 
 public class GameClient {
 
 	private GameServer server;
+	private Socket socket;
 
-	public GameClient(GameServer server) {
-		this.server = server;
+	public GameClient(GameServer server) throws IOException {
+		this(server.getIP(), server.getPort());
+	}
 
+	public GameClient(String host, int port) throws IOException {
+		Socket socket = new Socket(host, port);
 		start();
 	}
 
@@ -21,8 +28,6 @@ public class GameClient {
 		Game game = server.getGame();
 
 		try {
-			Socket socket = new Socket(server.getIP(), server.getPort());
-
 			DataOutputStream os = new DataOutputStream(socket.getOutputStream());
 			DataInputStream is = new DataInputStream(socket.getInputStream());
 
@@ -39,29 +44,29 @@ public class GameClient {
 			Player me = server.getGame().findPlayer(playerName);
 			List<Integer> hand = me.getHand();
 
+			System.out.println("Your hand: " + hand);
 			while (!game.isEnded()) {
-				System.out.println("Your hand: " + hand);
 
-                if ((hand.size() != 0) && (game.nextPlayer().equals(me))) {
-                    int cardsRecv;
+				if ((hand.size() != 0) && (game.nextPlayer().equals(me))) {
+					System.out.printf("My hand: %s\n", me.getHand());
+					int cardsRecv;
 
-                    do {
-                        System.out.println("[It's my turn!]");
-                        System.out.println(is.readUTF());
+					do {
+						System.out.println("[It's my turn!]");
+						System.out.println(is.readUTF());
 
 //						String playerChoice = GUI.getPlayerChoice();
-                        String playerChoice = input.nextLine();
-                        writeString(os, playerChoice);
+						String playerChoice = input.nextLine();
+						writeString(os, playerChoice);
 
-                        System.out.println(is.readUTF());
+						System.out.println(is.readUTF());
 
 //						int card = Integer.parseInt(GUI.getCardValue());
-                        int card = input.nextInt();
-                        writeInt(os, card);
+						int card = input.nextInt();
+						writeInt(os, card);
 
 						cardsRecv = is.readInt();
-                        System.out.printf("[Received %d %d's]%n", cardsRecv, card);
-						System.out.printf("My hand: %s\n", me.getHand());
+						System.out.printf("[Received %d %d's]\n", cardsRecv, card);
 
                         input.nextLine();
 					} while (cardsRecv != 0);

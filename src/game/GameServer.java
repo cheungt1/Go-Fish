@@ -113,7 +113,6 @@ public class GameServer {
                         Player other;
                         String targetName;
                         do {
-                            System.out.println("test");
                             writeString(os, "Choose a player from " + players());
                             targetName = is.readUTF();
                             other = game.findPlayer(targetName);
