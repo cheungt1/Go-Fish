@@ -1,6 +1,6 @@
+    
 package game;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -13,7 +13,7 @@ import java.util.ListIterator;
  *
  * @author Ruiming Zeng, Z Yang, Martin Cheung
  */
-public class Player implements Serializable {
+public class Player {
 
     private String name;
     private int score;
@@ -78,13 +78,18 @@ public class Player implements Serializable {
 
     /**
      * When a person got "Go-Fished", they add a card to their hand
+     *
+     * @return true if the player got a card from deck; false otherwise
      */
-    public void goFish() {
+    public boolean goFish() {
         if (game.cardsLeft() != 0) {
             this.hand.addLast(game.draw());
-            System.out.println("Go Fish! -> " + hand);
+//            System.out.println("Go Fish! -> " + hand);
             updateHand();
+            return true;
         }
+
+        return false;
     }
 
     /**
@@ -136,9 +141,9 @@ public class Player implements Serializable {
         this.active = active;
 
     	// if the player is not active, remove from order queue
-    	if(!active) {
+    	/*if (!active) {
     		game.removePlayer(this);
-    	}
+    	}*/
     }
 
     /**

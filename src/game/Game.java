@@ -1,6 +1,5 @@
 package game;
 
-import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -10,7 +9,7 @@ import java.util.*;
  * 
  * @author Ruiming Zeng, Z Yang, Martin Cheung
  */
-public class Game implements Serializable {
+public class Game {
 
 	private Deque<Player> players;
 	private Player current;
@@ -47,21 +46,25 @@ public class Game implements Serializable {
 	}
 
 	public Player addPlayer(String name) {
-		Player player = new Player(this, name);
-//		join(player);
-        numPlayers++;
-        players.addLast(player);
-
-		return player;
+        Player player = new Player(this, name);
+        return join(player) ? player : null;
 	}
 
 	/**
 	 * When a player joins, the player count is increased by one
 	 * and it is added to the players list.
+     *
+     * @return true if the player has successfully joined; false otherwise
 	 */
-	public void join(Player player) {
-		numPlayers++;
-		players.addLast(player);
+	public boolean join(Player player) {
+	    if (players.size() < 4) {
+            numPlayers++;
+            players.addLast(player);
+
+            return true;
+        }
+
+	    return false;
 	}
 
 	/**
@@ -71,7 +74,6 @@ public class Game implements Serializable {
 	 */
 	public Player nextPlayer() {
 		current = players.removeFirst();
-
 		players.addLast(current);
 
 		return current;
@@ -128,23 +130,21 @@ public class Game implements Serializable {
 	}
 	
 	public boolean isEnded() {
-		boolean allInactive = true;
-		
-		for(Player p: players) {
+		for (Player p: players) {
 			/*
 			 * if there is one player that is active,
 			 * then allInActive would be false
 			 */
-			if(p.isActive()) {
-				allInactive = false;
+			if (p.isActive()) {
+				return false;
 			}
-			break;
 		}
+
 		/*
 		 * game ends when there are 13 matched (all cards are found)
 		 * or when all players are inactive
 		 */
-		return (matched == 13) || allInactive;
+		return matched == 13;
 	}
 	
 	/**

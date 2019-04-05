@@ -1,77 +1,90 @@
 package game;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-import static game.Util.writeWithThread;
+import static game.Util.writeInt;
+import static game.Util.writeString;
 
 public class GameServer {
 
-    private final Game game;
+    private static Game game;
 
-    private final int port;
-    private final String IP;
-    private final ServerSocket serverSocket;
+    private static ServerSocket serverSocket;
+    private static String IP;
+    private static int port;
 
-    private PlayerHandler[] players;
-    private int numPlayers;
+    private static PlayerHandler[] players;
+    private static int numPlayers;
 
-    public GameServer(Game game, int port) throws IOException {
-        this.game = game;
-        this.port = port;
-        this.players = new PlayerHandler[4];
-        this.numPlayers = 0;
-        this.serverSocket = new ServerSocket(port);
-        this.IP = serverSocket.getInetAddress().getHostAddress();
+    static {
+        game = new Game();
+        port = 8000;
+
+        try {
+            serverSocket = new ServerSocket(port);
+            IP = serverSocket.getInetAddress().getHostAddress();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        players = new PlayerHandler[4];
+        numPlayers = game.numPlayers();
     }
 
-    public void start() {
+    public static void start() {
         new Thread(() -> {
             try {
-                System.out.printf("[Waiting for connection at port %d ...]%n", port);
+                System.out.printf("[Waiting for connection at port %d ...]\n", port);
 
                 while (true) {
                     // accept player
                     Socket playerSocket = serverSocket.accept();
 
                     // retrieve i/o streams
-                    DataInputStream is = new DataInputStream(playerSocket.getInputStream());
                     DataOutputStream os = new DataOutputStream(playerSocket.getOutputStream());
+                    DataInputStream is = new DataInputStream(playerSocket.getInputStream());
 
                     // ask for username
-                    writeWithThread(os, "[Welcome to Go Fish! Please enter your name]: ");
+                    writeString(os, "[Welcome to Go Fish! Please enter your name]: ");
 
                     String username = is.readUTF();
-
                     Player newPlayer = game.addPlayer(username);
+                    // ensures that the client can find this new player
+                    while (game.findPlayer(username) == null)
+                        Thread.sleep(1);
+                    os.writeInt(1); // signal the client
 
-//                    writeWithThread(os, String.format("[Hello, %s!]", username));
-                    System.out.printf("[%s has joined!\n]", username);
+
+//                    writeString(os, String.format("[Hello, %s!]", username));
+                    System.out.printf("[%s has joined!]\n", username);
 
                     new Thread(new PlayerHandler(newPlayer, is, os)).start();
                 }
-            } catch (IOException e) {
+            } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }
         }).start();
     }
 
-    public Game getGame() {
+    public static Game getGame() {
         return game;
     }
 
-    public int getPort() {
+    public static int getPort() {
         return port;
     }
 
-    public String getIP() {
+    public static String getIP() {
         return IP;
     }
 
-    public List<String> players() {
+    public static List<String> players() {
         List<String> names = new ArrayList<>();
         for (PlayerHandler handler : players) {
             if (handler != null) {
@@ -82,38 +95,37 @@ public class GameServer {
         return names;
     }
 
-    private class PlayerHandler implements Runnable {
+    private static class PlayerHandler implements Runnable {
 
         Player player;
 
         DataInputStream is;
         DataOutputStream os;
 
-        ObjectOutputStream oos;
-
-        PlayerHandler(Player player, DataInputStream is, DataOutputStream os) throws IOException {
+        PlayerHandler(Player player, DataInputStream is, DataOutputStream os) {
             this.player = player;
             this.is = is;
             this.os = os;
-            this.oos = new ObjectOutputStream(os);
+
 
             players[numPlayers++] = this;
-//            System.out.println(game.players());
         }
 
         @Override
         public void run() {
             try {
                 while (true) {
-                    oos.writeObject(player);
                     if (!game.isEnded()) {
-                        String selection = is.readUTF();
-//                        System.out.printf("[%s]%n", selection);
+                        Player other;
+                        String targetName;
+                        do {
+                            writeString(os, "Choose a player from " + players());
+                            targetName = is.readUTF();
+                            other = game.findPlayer(targetName);
+                        } while (other == null);
 
-                        String[] slct = selection.split("[\\s+]");
-                        Player other = game.findPlayer(slct[0]);
-                        int targetCard = Integer.parseInt(slct[1]);
-
+                        writeString(os, "[Request for a card]");
+                        int targetCard = is.readInt();
                         List<Integer> myHand = player.getHand();
                         List<Integer> otherHand = other.getHand();
 
@@ -124,11 +136,10 @@ public class GameServer {
                             player.goFish();
                         }
 
-                        writeWithThread(os, String.format("[Player %s has %d %s's!]%n", slct[0], n, slct[1]));
-                        System.out.println("wrote");
+                        writeInt(os, n);
                     }
                 }
-            } catch (Exception e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
