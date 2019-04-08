@@ -59,8 +59,8 @@ By using Java, we will create two objects, Card and Player, that will keep track
     
 ### Week 4 (April 1 - April 7)
   **Will**
-  
-  
+  1. Connecting GUI interactions with Server/Client implmentation 
+    
   **Did**
   1. Added graphics for center pile
   
