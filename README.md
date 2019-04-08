@@ -58,7 +58,7 @@ By using Java, we will create two objects, Card and Player, that will keep track
     1.Interaction between Clinet/Server
     
 ### Week 4 (April 1 - April 7)
-  **Will*
+  **Will**
   **Did**
   
   **Blocks/Challenges**
