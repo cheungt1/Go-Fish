@@ -1,7 +1,11 @@
 package game;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.Socket;
 
 import javafx.application.Application;
 import javafx.event.ActionEvent;
@@ -15,6 +19,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+
+import static game.Util.*;
 
 public class GUI extends Application
 {
@@ -52,8 +58,10 @@ public class GUI extends Application
 	static int playerScore = 0;
 	static Label lblPlayerScore = new Label("Your Score: " + playerScore);
 	
-	public static void main(String[] args)
+	public static void main(String[] args) throws Exception
 	{
+		GameServer server = new GameServer();
+		server.start();
 		launch(args);
 	}
 
@@ -419,8 +427,6 @@ public class GUI extends Application
 			}
 		}
 		
-		System.out.print(pVisual.getChildren().size());
-		
 		//pVisual background set-up
 		background.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\GUIGraphic\\tableTexture.jpg")));
 		translate(-20, 0, background);
@@ -466,25 +472,6 @@ public class GUI extends Application
 		tfUserName.setMaxWidth(192);
 		
 		//Setting up btConfirm functionality (Read from tfPlayerName and set the string playerName to that)
-		btConfirm.setOnAction(e ->
-		{
-			//Checks if the user entered a valid name or not
-			if(tfUserName.getText().compareTo("") != 0)
-			{
-				//Sets the player name to what was entered
-				updateUserName(tfUserName.getText());
-				
-				//Closes this stage and shows the stage for the actual game
-				startStage.close();
-				playingStage.show();
-			}
-			else
-			{
-				//Changes label to warn user of entering a name
-				lblMessage1.setVisible(false);
-				lblMessage2.setText("You MUST enter a name!");
-			}
-		});
 		btConfirm.setDefaultButton(true);
 		
 		//Adds all components into the stack pane
@@ -501,6 +488,42 @@ public class GUI extends Application
 		startStage.setScene(startScene);
 		startStage.setTitle("Welcome Player!");
 		startStage.show();
+		
+		try
+		{
+			Socket socket = new Socket("localhost", 8000);
+			
+			DataOutputStream os = new DataOutputStream(socket.getOutputStream());
+			DataInputStream is = new DataInputStream(socket.getInputStream());
+
+			lblMessage2.setText(is.readUTF());
+			
+			btConfirm.setOnAction(e ->
+			{
+				//Checks if the user entered a valid name or not
+				if(tfUserName.getText().compareTo("") != 0)
+				{
+					//Sets the player name to what was entered
+					writeString(os, tfUserName.getText());
+					updateUserName(tfUserName.getText());
+					
+					//Closes this stage and shows the stage for the actual game
+					startStage.close();
+					playingStage.show();
+				}
+				else
+				{
+					//Changes label to warn user of entering a name
+					lblMessage1.setVisible(false);
+					lblMessage2.setText("You MUST enter a name!");
+				}
+			});
+		}
+		catch (Exception e)
+		{
+			System.out.println(e);
+		}
+		
 	}
 	
 	//Created to translate a GUI component in the x and y axis at the same time
