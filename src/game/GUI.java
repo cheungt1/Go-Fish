@@ -1,8 +1,11 @@
 package game;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 
 import javafx.application.Application;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
@@ -16,7 +19,7 @@ import javafx.stage.StageStyle;
 public class GUI extends Application
 {
 	Game game = new Game();
-
+	
 	//Creates global stages to allow only one stage to be active at once
 	Stage playingStage = new Stage();
 	Stage startStage = new Stage();
@@ -43,6 +46,8 @@ public class GUI extends Application
 	//Global player name to be used throughout various methods
 	String userName = "";
 	Label lblUserName = new Label(userName); //Used to display the user's name
+	
+	Player user = GameServer.getGame().findPlayer(userName);
 	
 	static int playerScore = 0;
 	static Label lblPlayerScore = new Label("Your Score: " + playerScore);
@@ -226,6 +231,38 @@ public class GUI extends Application
 			
 		});
 		
+		btConfirmAction.setOnAction(e -> 
+		{
+			for(int i = 0; i < 4; i++)
+			{
+				for(int j = 0; j < 5; j++)
+				{
+					pVisual.getChildren().remove(8);
+				}
+			}
+			
+			
+			//Update User's hand
+			for(int i = 1; i < 6; i++)
+			{
+				ImageView userCard = new ImageView();
+				
+				try
+				{
+					userCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\" + i + ".png")));
+				} 
+				catch (Exception ex)
+				{
+					System.out.print("Image not Found");
+				}
+				
+				pVisual.getChildren().add(userCard);
+				
+				translate(13 * i - 55, 125, userCard);
+			}
+		});
+		
+		
 		//Setting font sizes
 		lblPlayerSection.setFont(f20);
 		lblCardSection.setFont(f20);
@@ -271,7 +308,7 @@ public class GUI extends Application
 		lblPlayer3Name.setRotate(180);
 		translate(-30, -190, lblPlayer3Name);
 		lblPlayer4Name.setRotate(270);
-		translate(315.5, 0, lblPlayer4Name);
+		translate(325, 0, lblPlayer4Name);
 		lblPlayer2Name.setRotate(90);
 		translate(-375.5, 0, lblPlayer2Name);
 		
@@ -307,6 +344,83 @@ public class GUI extends Application
 		{
 			lblPlayer2Name.setRotate(90);
 		});
+		
+		//pVisual Card setup
+		for(int i = 1; i < 6; i++)
+		{
+			ImageView userCard = new ImageView();
+			
+			try
+			{
+				userCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\" + i + ".png")));
+			} 
+			catch (Exception ex)
+			{
+				System.out.print("Image not Found");
+			}
+			
+			pVisual.getChildren().add(userCard);
+			
+			translate(13 * i - 55, 125, userCard);
+		}
+		
+		//pVisual Opponent Card setup
+		for(int i = 1; i < 4; i++)
+		{
+			for(int j = 1; j < 6; j++)
+			{
+				ImageView userCard = new ImageView();
+			
+				if(i == 1)
+				{
+					try
+					{
+						userCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fh.png")));
+					}	 
+					catch (Exception ex)
+					{
+						System.out.print("Image not Found");
+					}
+					
+					pVisual.getChildren().add(userCard);
+					
+					translate(-300, 13 * j - 50, userCard);
+				}
+				else if(i == 2)
+				{
+					try
+					{
+						userCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
+					}	 
+					catch (Exception ex)
+					{
+						System.out.print("Image not Found");
+					}
+					
+					pVisual.getChildren().add(userCard);
+					
+					translate(13 * j - 55, -125, userCard);
+				}
+				else
+				{
+					try
+					{
+						userCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fh.png")));
+					}	 
+					catch (Exception ex)
+					{
+						System.out.print("Image not Found");
+					}
+					
+					pVisual.getChildren().add(userCard);
+					
+					translate(250, 13 * j - 50, userCard);
+				}
+			}
+		}
+		
+		System.out.print(pVisual.getChildren().size());
+		
 		//pVisual background set-up
 		background.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\GUIGraphic\\tableTexture.jpg")));
 		translate(-20, 0, background);
