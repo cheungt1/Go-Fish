@@ -55,11 +55,14 @@ By using Java, we will create two objects, Card and Player, that will keep track
   4. Update GUI to see player name
   
   **Blocks/Challenges**
-    1.Interaction between Clinet/Server
+  1.Interaction between Clinet/Server
     
 ### Week 4 (April 1 - April 7)
   **Will**
+  
+  
   **Did**
+  1. Added graphics for center pile
   
   **Blocks/Challenges**
   1. Constantly updating the GUI for cards/hand update
