@@ -1,5 +1,6 @@
 package game;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -9,7 +10,7 @@ import java.util.*;
  * 
  * @author Ruiming Zeng, Z Yang, Martin Cheung
  */
-public class Game {
+public class Game implements Serializable {
 
 	private Deque<Player> players;
 	private Player current;
@@ -72,6 +73,7 @@ public class Game {
 	 * The first player is removed and returned, then added back to the queue.
 	 * @return a player number
 	 */
+	@Deprecated
 	public Player nextPlayer() {
 		current = players.removeFirst();
 		players.addLast(current);
@@ -188,7 +190,41 @@ public class Game {
 	    return null;
     }
 
-	private int convert(int card) {
+    protected Deque<Player> playerQueue() {
+	    return players;
+    }
+
+    public static String toRank(int card) {
+	    card = convert(card);
+
+	    switch (card) {
+            case 11: return "J";
+            case 12: return "Q";
+            case 13: return "K";
+            default: return Integer.toString(card);
+        }
+    }
+
+    public static int toCard(String rank) {
+	    rank = rank.trim();
+	    if (rank.length() > 2)
+	        throw new IllegalArgumentException();
+	    else if (rank.matches("[0-9]+")) {
+	        int card = Integer.parseInt(rank);
+	        if (card < 1 || card > 10)
+	            throw new IllegalArgumentException();
+	        return card;
+        }
+
+	    switch (rank) {
+            case "J": return 11;
+            case "Q": return 12;
+            case "K": return 13;
+            default: throw new IllegalArgumentException();
+        }
+    }
+
+	private static int convert(int card) {
 		// x = 1(A): ((1 - 1) % 13) + 1 = 1(A)
 		// x = 12(Q): ((12 - 1) % 13) + 1 = 12(Q)
 		// x = 13(K): ((13 - 1) % 13) + 1 = 13(K)

@@ -20,12 +20,12 @@ import static game.Util.*;
 
 public class GUI extends Application
 {	
-	Socket socket;
+	//Socket socket;
 	
-	DataOutputStream os;
-	DataInputStream is;
+	//DataOutputStream os;
+	//DataInputStream is;
 	
-	static GameServer server = new GameServer();
+	//static GameServer server = new GameServer();
 	
 	//Creates global stages to allow only one stage to be active at once
 	Stage playingStage = new Stage();
@@ -54,14 +54,13 @@ public class GUI extends Application
 	String userName = "";
 	Label lblUserName = new Label(userName); //Used to display the user's name
 	
-	Player user = GameServer.getGame().findPlayer(userName);
+	//Player user = GameServer.getGame().findPlayer(userName);
 	
 	static int playerScore = 0;
 	static Label lblPlayerScore = new Label("Your Score: " + playerScore);
 	
 	public static void main(String[] args) throws Exception
 	{
-		server.start();
 		launch(args);
 	}
 
@@ -497,6 +496,7 @@ public class GUI extends Application
 		
 		try
 		{
+			/*
 			socket = new Socket("localhost", 8000);
 			
 			os = new DataOutputStream(socket.getOutputStream());
@@ -504,6 +504,7 @@ public class GUI extends Application
 
 			lblMessage1.setText(is.readUTF());
 			lblMessage2.setText(is.readUTF());
+			*/
 			
 			btConfirm.setOnAction(e ->
 			{
@@ -511,7 +512,8 @@ public class GUI extends Application
 				if(tfUserName.getText().compareTo("") != 0)
 				{
 					//Sets the player name to what was entered
-					writeString(os, tfUserName.getText());
+					//writeString(os, tfUserName.getText());
+					updateUserName(tfUserName.getText());
 					
 					//Closes this stage and shows the stage for the actual game
 					startStage.close();
