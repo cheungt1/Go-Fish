@@ -73,7 +73,7 @@ public class GameServer extends Application {
                     while (game.findPlayer(username) == null) {
                         Thread.sleep(1);
                     }
-                    os.writeInt(1); // signal the client
+                    writeInt(os, 1); // signal the client
 
                     Platform.runLater(() -> ta.appendText(String.format("[Server] %s has joined!\n", username)));
 
