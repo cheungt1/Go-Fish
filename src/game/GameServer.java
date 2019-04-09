@@ -1,17 +1,27 @@
 package game;
 
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.scene.Scene;
+import javafx.scene.control.TextArea;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static game.Util.writeInt;
 import static game.Util.writeString;
 
-public class GameServer {
+public class GameServer extends Application {
+
+    private TextArea ta = new TextArea();
 
     private static Game game;
 
@@ -22,7 +32,60 @@ public class GameServer {
     private static PlayerHandler[] players;
     private static int numPlayers;
 
-    static {
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+    @Override
+    public void start(Stage primaryStage) {
+        initialize();
+        ta.appendText("[Server] Initialized\n");
+
+        StackPane base = new StackPane(ta);
+
+        Scene scene = new Scene(base, 500, 350);
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("GoFish Server");
+        primaryStage.show();
+
+        ta.setPrefSize(scene.getWidth(), scene.getHeight());
+
+        new Thread(() -> {
+            try {
+//                System.out.printf("[Waiting for connection at port %d ...]\n", port);
+                Platform.runLater(() ->
+                        ta.appendText(String.format("[Server] Waiting for connection at port %d ...\n", port)));
+
+                while (true) {
+                    // accept player
+                    Socket playerSocket = serverSocket.accept();
+
+                    // retrieve i/o streams
+                    DataOutputStream os = new DataOutputStream(playerSocket.getOutputStream());
+                    DataInputStream is = new DataInputStream(playerSocket.getInputStream());
+
+                    // ask for username
+                    writeString(os, "[Server] Welcome to Go Fish! Please enter your name: ");
+
+                    String username = is.readUTF();
+                    Player newPlayer = game.addPlayer(username);
+                    // ensures that the client can find this new player
+                    while (game.findPlayer(username) == null) {
+                        Thread.sleep(1);
+                    }
+                    os.writeInt(1); // signal the client
+
+                    Platform.runLater(() -> ta.appendText(String.format("[Server] %s has joined!\n", username)));
+
+                    new Thread(new PlayerHandler(newPlayer, is, os)).start();
+                }
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    private static void initialize() {
         game = new Game();
         port = 8000;
 
@@ -35,41 +98,6 @@ public class GameServer {
 
         players = new PlayerHandler[4];
         numPlayers = game.numPlayers();
-    }
-
-    public static void start() {
-        new Thread(() -> {
-            try {
-                System.out.printf("[Waiting for connection at port %d ...]\n", port);
-
-                while (true) {
-                    // accept player
-                    Socket playerSocket = serverSocket.accept();
-
-                    // retrieve i/o streams
-                    DataOutputStream os = new DataOutputStream(playerSocket.getOutputStream());
-                    DataInputStream is = new DataInputStream(playerSocket.getInputStream());
-
-                    // ask for username
-                    writeString(os, "[Welcome to Go Fish! Please enter your name]: ");
-
-                    String username = is.readUTF();
-                    Player newPlayer = game.addPlayer(username);
-                    // ensures that the client can find this new player
-                    while (game.findPlayer(username) == null)
-                        Thread.sleep(1);
-                    os.writeInt(1); // signal the client
-
-
-//                    writeString(os, String.format("[Hello, %s!]", username));
-                    System.out.printf("[%s has joined!]\n", username);
-
-                    new Thread(new PlayerHandler(newPlayer, is, os)).start();
-                }
-            } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
-            }
-        }).start();
     }
 
     public static Game getGame() {
@@ -88,14 +116,14 @@ public class GameServer {
         List<String> names = new ArrayList<>();
         for (PlayerHandler handler : players) {
             if (handler != null) {
-                names.add(handler.getPlayer().getName());
+                names.add(handler.player.getName());
             }
         }
 
         return names;
     }
 
-    private static class PlayerHandler implements Runnable {
+    private class PlayerHandler implements Runnable {
 
         Player player;
 
@@ -107,7 +135,6 @@ public class GameServer {
             this.is = is;
             this.os = os;
 
-
             players[numPlayers++] = this;
         }
 
@@ -115,37 +142,84 @@ public class GameServer {
         public void run() {
             try {
                 while (true) {
-                    if (!game.isEnded()) {
-                        Player other;
-                        String targetName;
-                        do {
-                            writeString(os, "Choose a player from " + players());
-                            targetName = is.readUTF();
-                            other = game.findPlayer(targetName);
-                        } while (other == null);
+                    // send this player's hand
+                    writeString(os, formatHand());
 
+                    // get and send the name of the player of this turn
+                    Player thisTurn = game.playerQueue().peekFirst();
+                    writeString(os, thisTurn.getName());
+                    Platform.runLater(() -> ta.appendText(String.format("[Server] %s's turn\n",
+                            thisTurn.getName())));
+
+                    // if that player is this player
+                    if (!game.isEnded() && thisTurn.equals(player)) {
+                        // send this player's hand
+//                        writeString(os, formatHand());
+
+                        // request target player from client
+                        writeString(os, "Choose a player from " + players());
+                        String targetName = is.readUTF();
+                        Player other = game.findPlayer(targetName);
+
+                        // request target card from client
                         writeString(os, "[Request for a card]");
-                        int targetCard = is.readInt();
+                        int targetCard = Game.toCard(is.readUTF());
+
+                        Platform.runLater(() -> ta.appendText(String.format("[Server] %s requests %d from %s\n",
+                                thisTurn.getName(), targetCard, targetName)));
+
+                        // get hands from both players
                         List<Integer> myHand = player.getHand();
                         List<Integer> otherHand = other.getHand();
 
-                        int n;
-                        if ((n = other.take(targetCard)) > 0) {
-                            player.give(targetCard, n);
-                        } else {
+                        // check if target player has target card
+                        int recv;
+                        if ((recv = other.take(targetCard)) > 0) { // target player has target card
+                            // give this player those cards
+                            player.give(targetCard, recv);
+
+                            Platform.runLater(() -> ta.appendText(String.format("[Server] %s received %d %s's\n",
+                                    thisTurn.getName(), recv, targetCard)));
+                        } else { // target player does not have = target card
+                            // this player go fish
                             player.goFish();
+
+                            // move this player to the back of the queue
+                            game.playerQueue().removeFirst();
+                            game.playerQueue().addLast(player);
+
+                            Platform.runLater(() -> ta.appendText(String.format("[Server] %s Go Fish!\n",
+                                    thisTurn.getName())));
                         }
 
-                        writeInt(os, n);
+                        // tell client the number of target cards this player got
+                        writeInt(os, recv);
                     }
+                }
+            } catch (SocketException se) {
+                try {
+                    Platform.runLater(() -> ta.appendText(String.format("[Server] %s disconnected\n",
+                            player.getName())));
+                    is.close();
+                    os.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        public Player getPlayer() {
-            return player;
+        private String formatHand() {
+            if (player.getHand().isEmpty())
+                return "";
+
+            StringBuilder hand = new StringBuilder();
+            for (int card : player.getHand()) {
+                hand.append(Game.toRank(card)).append(" ");
+            }
+
+            return hand.toString();
         }
     }
 }

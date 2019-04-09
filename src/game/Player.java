@@ -1,6 +1,7 @@
     
 package game;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -13,7 +14,7 @@ import java.util.ListIterator;
  *
  * @author Ruiming Zeng, Z Yang, Martin Cheung
  */
-public class Player {
+public class Player implements Serializable {
 
     private String name;
     private int score;

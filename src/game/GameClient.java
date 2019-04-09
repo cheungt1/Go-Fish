@@ -4,93 +4,84 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.List;
 import java.util.Scanner;
 
-import static game.Util.writeInt;
 import static game.Util.writeString;
 
 public class GameClient {
 
-//	private GameServer server;
-	private Socket socket;
+    //	private GameServer server;
+    private Socket socket;
 
-	public GameClient() throws IOException {
-	    this(GameServer.getIP(), GameServer.getPort());
+    public GameClient() throws IOException {
+        this(GameServer.getIP(), GameServer.getPort());
     }
 
     /**
      * Create a game client with the given host name and port.
      *
-     * @param host  the host name or IP address
-     * @param port  the port number
-     * @throws IOException  for any errors regards to creating the socket
+     * @param host the host name or IP address
+     * @param port the port number
+     * @throws IOException for any errors regards to creating the socket
      */
-	public GameClient(String host, int port) throws IOException {
-		socket = new Socket(host, port);
-		start();
-	}
+    public GameClient(String host, int port) throws IOException {
+        socket = new Socket(host, port);
+        start();
+    }
 
-	private void start() {
-		Game game = GameServer.getGame();
+    private void start() {
+        try (DataOutputStream os = new DataOutputStream(socket.getOutputStream());
+             DataInputStream is = new DataInputStream(socket.getInputStream())) {
 
-		try {
-			DataOutputStream os = new DataOutputStream(socket.getOutputStream());
-			DataInputStream is = new DataInputStream(socket.getInputStream());
+            Scanner input = new Scanner(System.in);
 
-			Scanner input = new Scanner(System.in);
+            System.out.print(is.readUTF()); // welcoming message
 
-			System.out.print(is.readUTF()); // welcoming message
-
-			// send player name to server
+            // send player name to server
 //			writeString(os, GUI.getUserName());
-			String playerName = input.nextLine();
-			writeString(os, playerName);
+            String myName = input.nextLine();
+            writeString(os, myName);
 
-			is.readInt(); // get signal from server
-			Player me = GameServer.getGame().findPlayer(playerName);
-			List<Integer> hand = me.getHand();
+            // get signal from server to ensure that player has been created
+            is.readInt();
 
-			System.out.println("Your hand: " + hand);
-			while (!game.isEnded()) {
+            while (true) {
+                // get hand from server
+                String myHand = is.readUTF();
+                System.out.println("Your hand: " + myHand);
 
-				if ((hand.size() != 0) && (game.nextPlayer().equals(me))) {
-					System.out.printf("My hand: %s\n", me.getHand());
-					int cardsRecv;
+                // get the name of the player of this turn
+                String thisTurn = is.readUTF();
 
-					do {
-						System.out.println("[It's my turn!]");
-						System.out.println(is.readUTF());
+                // if it's my turn
+                if ((myHand.length() != 0) && (thisTurn.equals(myName))) {
+                    System.out.println("[It's my turn!]");
 
-//						String playerChoice = GUI.getPlayerChoice();
-						String playerChoice = input.nextLine();
-						writeString(os, playerChoice);
+//                    myHand = is.readUTF();
+//                    System.out.printf("My hand: [%s]\n", myHand);
 
-						System.out.println(is.readUTF());
+                    System.out.println(is.readUTF());
 
-//						int card = Integer.parseInt(GUI.getCardValue());
-						int card = input.nextInt();
-						writeInt(os, card);
+                    // prompt and send target player's name to server
+                    String playerChoice = input.nextLine();
+                    writeString(os, playerChoice);
 
-						cardsRecv = is.readInt();
-						System.out.printf("[Received %d %d's]\n", cardsRecv, card);
+                    System.out.println(is.readUTF());
 
-                        input.nextLine();
-					} while (cardsRecv != 0);
+                    // prompt and send target card to server
+                    String card = input.nextLine();
+                    writeString(os, card);
 
-                    System.out.println("[Go Fish!]");
-				}
-			}
+                    // read from server the number of cards received
+                    int cardsRecv = is.readInt();
+                    System.out.printf("[Received %d %s's]\n", cardsRecv, card);
 
-			is.close();
-			os.close();
-			socket.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	/*public GameServer getServer() {
-		return server;
-	}*/
+                    if (cardsRecv == 0)
+                        System.out.println("[Go Fish!]");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
