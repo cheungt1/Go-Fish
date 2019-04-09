@@ -51,7 +51,8 @@ public class GameServer {
                     DataInputStream is = new DataInputStream(playerSocket.getInputStream());
 
                     // ask for username
-                    writeString(os, "[Welcome to Go Fish! Please enter your name]: ");
+                    writeString(os, "[Welcome to Go Fish!]");
+                    writeString(os, "[Please enter your name]: ");
 
                     String username = is.readUTF();
                     Player newPlayer = game.addPlayer(username);

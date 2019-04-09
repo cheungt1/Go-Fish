@@ -3,13 +3,9 @@ package game;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.net.Socket;
 
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
@@ -23,8 +19,13 @@ import javafx.stage.StageStyle;
 import static game.Util.*;
 
 public class GUI extends Application
-{
-	Game game = new Game();
+{	
+	Socket socket;
+	
+	DataOutputStream os;
+	DataInputStream is;
+	
+	static GameServer server = new GameServer();
 	
 	//Creates global stages to allow only one stage to be active at once
 	Stage playingStage = new Stage();
@@ -60,7 +61,6 @@ public class GUI extends Application
 	
 	public static void main(String[] args) throws Exception
 	{
-		GameServer server = new GameServer();
 		server.start();
 		launch(args);
 	}
@@ -68,189 +68,294 @@ public class GUI extends Application
 	@Override
 	public void start(Stage primaryStage) throws Exception
 	{
-		//Starts the game, allowing user to input a name
-		startGameGUI();
-		
-		//Pane initialization
-		BorderPane overallPane = new BorderPane();
-		StackPane pInteraction = new StackPane();
-		StackPane pVisual = new StackPane();
-		StackPane pTextLog = new StackPane();
-		
-		//Background Image initialization
-		ImageView background = new ImageView();
-		
-		//Label initialization
-		Label lblPlayerSection = new Label("Available Players");
-		Label lblCardSection =  new Label("Select a Card Value");
-		Label lblPlayer2Name = new Label("Player 2");
-		Label lblPlayer3Name = new Label("Player 3");
-		Label lblPlayer4Name = new Label("Player 4");
-		Label lblRecentAction = new Label("Test Text log");
-		
-		//Button initialization
-		Button btConfirmAction = new Button("Ask for that card");
-		Button btQuit = new Button("Leave Game");
-		
-		//Stage modifications
-		playingStage.initStyle(StageStyle.UNDECORATED);
-		
-		//Sets up a toggle group so only one option can be true out of the three
-		rbPlayer2.setToggleGroup(rbPlayers);
-		rbPlayer3.setToggleGroup(rbPlayers);
-		rbPlayer4.setToggleGroup(rbPlayers);
-		
-		rbPlayer2.setSelected(true);
-		
-		//Sets up ComboBox's values
-		cbCardValues.getItems().addAll("Ace", "2", "3", "4", "5", "6", "7", "8", "9", "Jack", "Queen", "King");
-		
-		//The following two blocks of code are from: https://stackoverflow.com/questions/45144853/javafx-combobox-displayed-item-font-size?rq=1
-		cbCardValues.setCellFactory(l -> new ListCell<String>() {
-
-	        @Override
-	        protected void updateItem(String item, boolean empty) {
-	        	super.updateItem(item, empty); 
-	            if(empty || item==null){
-	                setStyle("-fx-font-size:16");
-	            } else {
-	                setStyle("-fx-font-size:16");
-	                setText(item.toString());
-	            }
-	        }
-
-	    });
-		
-		cbCardValues.setButtonCell(new ListCell<String>(){
-
-	        @Override
-	        protected void updateItem(String item, boolean empty) {
-	            super.updateItem(item, empty); 
-	            if(empty || item==null){
-	                setStyle("-fx-font-size:16");
-	            } else {
-	                setStyle("-fx-font-size:16");
-	                setText(item.toString());
-	            }
-	        }
-
-	    });
-		//End of code from outside help
-		
-		//Combo box functionality
-		cbCardValues.setValue("Ace");
-		
-		ImageView imgCard = new ImageView();
-		ImageView imgCardBack1 = new ImageView(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
-		ImageView imgCardBack2 = new ImageView(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
-		ImageView imgCardBack3 = new ImageView(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
-		
-		
-		cbCardValues.setOnAction(e -> 
-		{
-			try
-			{
-				switch(cbCardValues.getValue())
-				{
-					case "Ace":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\1.png")));
-						break;
-					case "Jack":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\11.png")));
-						break;
-					case "Queen":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\12.png")));
-						break;
-					case "King":
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\13.png")));
-						break;
-					default:
-						imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + 
-								"\\git\\Go-Fish\\card\\" + cbCardValues.getValue() + ".png")));
-						break;
-				}
-			}
-			catch(Exception ex)
-			{
-				System.out.print("Image not Found");
-			}
-		});
-		
-		//Sets default image
-		imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\1.png")));
-		
-		//Setting up btQuit functionality, ending game
-		btQuit.setOnAction(e -> 
-		{
-			//Create temporary stage
-			Stage confirmStage = new Stage();
+		try
+		{	
+			//Starts the game, allowing user to input a name
+			startGameGUI();
 			
-			//Create a StackPane for the temporary stage
-			StackPane pConfirm = new StackPane();
-			
-			//Create a buttons for user decision
-			Button btYes = new Button("Yes");
-			Button btNo = new Button("No");
-			
-			//Creates a label to prompt a decision from user
-			Label lblConfirm = new Label("Do you want to leave this game?");
-			
+			//Pane initialization
+			BorderPane overallPane = new BorderPane();
+			StackPane pInteraction = new StackPane();
+			StackPane pVisual = new StackPane();
+			StackPane pTextLog = new StackPane();
+		
+			//Background Image initialization
+			ImageView background = new ImageView();
+		
+			//Label initialization
+			Label lblPlayerSection = new Label("Available Players");
+			Label lblCardSection =  new Label("Select a Card Value");
+			Label lblPlayer2Name = new Label("Player 2");
+			Label lblPlayer3Name = new Label("Player 3");
+			Label lblPlayer4Name = new Label("Player 4");
+			Label lblRecentAction = new Label("Test Text log");
+		
+			//Button initialization
+			Button btConfirmAction = new Button("Ask for that card");
+			Button btQuit = new Button("Leave Game");
+		
 			//Stage modifications
-			confirmStage.initStyle(StageStyle.UNDECORATED);
-			
-			//Sets font size for all components
-			lblConfirm.setFont(f18);
-			btYes.setFont(f16);
-			btNo.setFont(f16);
-			
-			btYes.setDefaultButton(true);
-			
-			//Creates actions for the buttons
-			btYes.setOnAction(f ->
-			{
-				confirmStage.close();
-				playingStage.close();
-			});
-			
-			btNo.setOnAction(f ->
-			{
-				confirmStage.close();
-			});
-			
-			//Adds all components onto the pane, pConfirm
-			pConfirm.getChildren().addAll(lblConfirm, btYes, btNo);
-			
-			//Translates the components
-			pConfirm.setAlignment(Pos.CENTER);
-			translate(-100, 32, btYes);
-			translate(100, 32, btNo);
-			translate(0, -32, lblConfirm);
-			
-			//Size modifications to buttons
-			btYes.setPrefWidth(100);
-			btNo.setPrefWidth(100);
-			
-			
-			//Creates a scene for the stage, confirmStage, and show it
-			Scene confirmScene = new Scene(pConfirm, 384, 192);
-			confirmStage.setScene(confirmScene);
-			confirmStage.setTitle("Are you sure you wanna quit?");
-			confirmStage.show();
-			
-		});
+			playingStage.initStyle(StageStyle.UNDECORATED);
 		
-		btConfirmAction.setOnAction(e -> 
-		{
-			for(int i = 0; i < 4; i++)
-			{
-				for(int j = 0; j < 5; j++)
-				{
-					pVisual.getChildren().remove(8);
+			//Sets up a toggle group so only one option can be true out of the three
+			rbPlayer2.setToggleGroup(rbPlayers);
+			rbPlayer3.setToggleGroup(rbPlayers);
+			rbPlayer4.setToggleGroup(rbPlayers);
+		
+			rbPlayer2.setSelected(true);
+			
+			//Sets up ComboBox's values
+			cbCardValues.getItems().addAll("Ace", "2", "3", "4", "5", "6", "7", "8", "9", "Jack", "Queen", "King");
+			
+			//The following two blocks of code are from: https://stackoverflow.com/questions/45144853/javafx-combobox-displayed-item-font-size?rq=1
+			cbCardValues.setCellFactory(l -> new ListCell<String>() {
+				
+				@Override
+				protected void updateItem(String item, boolean empty) {
+					super.updateItem(item, empty); 
+					if(empty || item==null){
+						setStyle("-fx-font-size:16");
+					} else {
+						setStyle("-fx-font-size:16");
+						setText(item.toString());
+					}
 				}
-			}
+
+			});
+		
+			cbCardValues.setButtonCell(new ListCell<String>(){
+
+				@Override
+				protected void updateItem(String item, boolean empty) {
+					super.updateItem(item, empty); 
+					if(empty || item==null){
+						setStyle("-fx-font-size:16");
+					} else {
+						setStyle("-fx-font-size:16");
+						setText(item.toString());
+					}
+				}
+			});
+		
+			//End of code from outside help
+		
+			//Combo box functionality
+			cbCardValues.setValue("Ace");
+		
+			ImageView imgCard = new ImageView();
+			ImageView imgCardBack1 = new ImageView(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
+			ImageView imgCardBack2 = new ImageView(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
+			ImageView imgCardBack3 = new ImageView(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
+		
+		
+			cbCardValues.setOnAction(e -> 
+			{
+				try
+				{
+					switch(cbCardValues.getValue())
+					{
+						case "Ace":
+							imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\1.png")));
+							break;
+						case "Jack":
+							imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\11.png")));
+							break;
+						case "Queen":
+							imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\12.png")));
+							break;
+						case "King":
+							imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\13.png")));
+							break;
+						default:
+							imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + 
+								"\\git\\Go-Fish\\card\\" + cbCardValues.getValue() + ".png")));
+							break;
+					}
+				}
+				catch(Exception ex)
+				{
+					System.out.print("Image not Found");
+				}
+			});
+		
+			//Sets default image
+			imgCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\1.png")));
+		
+			//Setting up btQuit functionality, ending game
+			btQuit.setOnAction(e -> 
+			{
+				//Create temporary stage
+				Stage confirmStage = new Stage();
+			
+				//Create a StackPane for the temporary stage
+				StackPane pConfirm = new StackPane();
+			
+				//Create a buttons for user decision
+				Button btYes = new Button("Yes");
+				Button btNo = new Button("No");
+			
+				//Creates a label to prompt a decision from user
+				Label lblConfirm = new Label("Do you want to leave this game?");
+			
+				//Stage modifications
+				confirmStage.initStyle(StageStyle.UNDECORATED);
+			
+				//Sets font size for all components
+				lblConfirm.setFont(f18);
+				btYes.setFont(f16);
+				btNo.setFont(f16);
+			
+				btYes.setDefaultButton(true);
+			
+				//Creates actions for the buttons
+				btYes.setOnAction(f ->
+				{
+					confirmStage.close();
+					playingStage.close();
+				});
+			
+				btNo.setOnAction(f ->
+				{
+					confirmStage.close();
+				});
+			
+				//Adds all components onto the pane, pConfirm
+				pConfirm.getChildren().addAll(lblConfirm, btYes, btNo);
+			
+				//Translates the components
+				pConfirm.setAlignment(Pos.CENTER);
+				translate(-100, 32, btYes);
+				translate(100, 32, btNo);
+				translate(0, -32, lblConfirm);
+				
+				//Size modifications to buttons
+				btYes.setPrefWidth(100);
+				btNo.setPrefWidth(100);
 			
 			
-			//Update User's hand
+				//Creates a scene for the stage, confirmStage, and show it
+				Scene confirmScene = new Scene(pConfirm, 384, 192);
+				confirmStage.setScene(confirmScene);
+				confirmStage.setTitle("Are you sure you wanna quit?");
+				confirmStage.show();
+			
+			});
+		
+			btConfirmAction.setOnAction(e -> 
+			{
+				for(int i = 0; i < 4; i++)
+				{
+					for(int j = 0; j < 5; j++)
+					{	
+						pVisual.getChildren().remove(8);
+					}
+				}
+			
+			
+				//Update User's hand
+				for(int i = 1; i < 6; i++)
+				{
+					ImageView userCard = new ImageView();
+				
+					try
+					{
+						userCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\" + i + ".png")));
+					} 
+					catch (Exception ex)
+					{
+						System.out.print("Image not Found");
+					}
+				
+					pVisual.getChildren().add(userCard);
+				
+					translate(13 * i - 55, 125, userCard);
+				}
+			});
+		
+		
+			//Setting font sizes
+			lblPlayerSection.setFont(f20);
+			lblCardSection.setFont(f20);
+			lblPlayerScore.setFont(f18);
+			rbPlayer2.setFont(f18);
+			rbPlayer3.setFont(f18);
+			rbPlayer4.setFont(f18);
+			btConfirmAction.setFont(f18);
+			btQuit.setFont(f18);
+			lblRecentAction.setFont(f16);
+			lblUserName.setFont(f16);
+			lblPlayer2Name.setFont(f16);
+			lblPlayer3Name.setFont(f16);
+			lblPlayer4Name.setFont(f16);
+		
+			//Adding all components into panes
+			pInteraction.getChildren().addAll(lblPlayerScore, lblPlayerSection, lblCardSection, imgCard, rbPlayer2, rbPlayer3, rbPlayer4, cbCardValues, btConfirmAction, btQuit);
+			pVisual.getChildren().addAll(background, imgCardBack1, imgCardBack2, imgCardBack3, lblUserName, lblPlayer2Name, lblPlayer3Name, lblPlayer4Name);
+			pTextLog.getChildren().addAll(lblRecentAction);
+		
+			overallPane.setTop(pTextLog);
+			overallPane.setCenter(pVisual);
+			overallPane.setRight(pInteraction);
+		
+			//overallPane background color change
+			overallPane.setBackground(new Background(new BackgroundFill(Color.rgb(243, 229, 192), CornerRadii.EMPTY, Insets.EMPTY))); 
+		
+			//pInteraction Alignment	
+			translate(-20, -230, lblPlayerSection);
+			translate(-20, -185, rbPlayer2);
+			translate(-20, -155, rbPlayer3);
+			translate(-20, -125, rbPlayer4);
+			translate(-20, -75, lblCardSection);
+			translate(-20, -40, cbCardValues);
+			translate(-20, 35, imgCard);
+			translate(-20, 110, btConfirmAction);
+			translate(-20, 160, btQuit);
+			translate(-20, 210, lblPlayerScore);
+		
+			//pVisual Alignment
+			StackPane.setAlignment(lblUserName, Pos.BOTTOM_CENTER);
+			translate(-30, -40, lblUserName);
+			lblPlayer3Name.setRotate(180);
+			translate(-30, -190, lblPlayer3Name);
+			lblPlayer4Name.setRotate(270);
+			translate(325, 0, lblPlayer4Name);
+			lblPlayer2Name.setRotate(90);
+			translate(-375.5, 0, lblPlayer2Name);
+		
+			translate(-27, 0, imgCardBack1);
+			translate(-25, -2, imgCardBack2);
+			translate(-23, -4, imgCardBack3);
+		
+			//Label actions set-up
+			//Click and hold on the label to re-orient the label to read the player's name
+			lblPlayer3Name.setOnMousePressed(e -> 
+			{
+				lblPlayer3Name.setRotate(0);
+			});
+			lblPlayer3Name.setOnMouseReleased(e -> 
+			{
+				lblPlayer3Name.setRotate(180);
+			});
+		
+			lblPlayer4Name.setOnMousePressed(e -> 
+			{
+				lblPlayer4Name.setRotate(0);
+			});
+			lblPlayer4Name.setOnMouseReleased(e -> 
+			{
+				lblPlayer4Name.setRotate(270);
+			});
+			
+			lblPlayer2Name.setOnMousePressed(e -> 
+			{
+				lblPlayer2Name.setRotate(0);
+			});
+			lblPlayer2Name.setOnMouseReleased(e -> 
+			{
+				lblPlayer2Name.setRotate(90);
+			});
+		
+			//pVisual Card setup
 			for(int i = 1; i < 6; i++)
 			{
 				ImageView userCard = new ImageView();
@@ -263,188 +368,89 @@ public class GUI extends Application
 				{
 					System.out.print("Image not Found");
 				}
-				
+			
 				pVisual.getChildren().add(userCard);
-				
+			
 				translate(13 * i - 55, 125, userCard);
 			}
-		});
 		
-		
-		//Setting font sizes
-		lblPlayerSection.setFont(f20);
-		lblCardSection.setFont(f20);
-		lblPlayerScore.setFont(f18);
-		rbPlayer2.setFont(f18);
-		rbPlayer3.setFont(f18);
-		rbPlayer4.setFont(f18);
-		btConfirmAction.setFont(f18);
-		btQuit.setFont(f18);
-		lblRecentAction.setFont(f16);
-		lblUserName.setFont(f16);
-		lblPlayer2Name.setFont(f16);
-		lblPlayer3Name.setFont(f16);
-		lblPlayer4Name.setFont(f16);
-		
-		//Adding all components into panes
-		pInteraction.getChildren().addAll(lblPlayerScore, lblPlayerSection, lblCardSection, imgCard, rbPlayer2, rbPlayer3, rbPlayer4, cbCardValues, btConfirmAction, btQuit);
-		pVisual.getChildren().addAll(background, imgCardBack1, imgCardBack2, imgCardBack3, lblUserName, lblPlayer2Name, lblPlayer3Name, lblPlayer4Name);
-		pTextLog.getChildren().addAll(lblRecentAction);
-		
-		overallPane.setTop(pTextLog);
-		overallPane.setCenter(pVisual);
-		overallPane.setRight(pInteraction);
-		
-		//overallPane background color change
-		overallPane.setBackground(new Background(new BackgroundFill(Color.rgb(243, 229, 192), CornerRadii.EMPTY, Insets.EMPTY))); 
-		
-		//pInteraction Alignment	
-		translate(-20, -230, lblPlayerSection);
-		translate(-20, -185, rbPlayer2);
-		translate(-20, -155, rbPlayer3);
-		translate(-20, -125, rbPlayer4);
-		translate(-20, -75, lblCardSection);
-		translate(-20, -40, cbCardValues);
-		translate(-20, 35, imgCard);
-		translate(-20, 110, btConfirmAction);
-		translate(-20, 160, btQuit);
-		translate(-20, 210, lblPlayerScore);
-		
-		//pVisual Alignment
-		StackPane.setAlignment(lblUserName, Pos.BOTTOM_CENTER);
-		translate(-30, -40, lblUserName);
-		lblPlayer3Name.setRotate(180);
-		translate(-30, -190, lblPlayer3Name);
-		lblPlayer4Name.setRotate(270);
-		translate(325, 0, lblPlayer4Name);
-		lblPlayer2Name.setRotate(90);
-		translate(-375.5, 0, lblPlayer2Name);
-		
-		translate(-27, 0, imgCardBack1);
-		translate(-25, -2, imgCardBack2);
-		translate(-23, -4, imgCardBack3);
-		
-		//Label actions set-up
-		//Click and hold on the label to re-orient the label to read the player's name
-		lblPlayer3Name.setOnMousePressed(e -> 
-		{
-			lblPlayer3Name.setRotate(0);
-		});
-		lblPlayer3Name.setOnMouseReleased(e -> 
-		{
-			lblPlayer3Name.setRotate(180);
-		});
-		
-		lblPlayer4Name.setOnMousePressed(e -> 
-		{
-			lblPlayer4Name.setRotate(0);
-		});
-		lblPlayer4Name.setOnMouseReleased(e -> 
-		{
-			lblPlayer4Name.setRotate(270);
-		});
-		
-		lblPlayer2Name.setOnMousePressed(e -> 
-		{
-			lblPlayer2Name.setRotate(0);
-		});
-		lblPlayer2Name.setOnMouseReleased(e -> 
-		{
-			lblPlayer2Name.setRotate(90);
-		});
-		
-		//pVisual Card setup
-		for(int i = 1; i < 6; i++)
-		{
-			ImageView userCard = new ImageView();
-			
-			try
+			//pVisual Opponent Card setup
+			for(int i = 1; i < 4; i++)
 			{
-				userCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\" + i + ".png")));
-			} 
-			catch (Exception ex)
-			{
-				System.out.print("Image not Found");
-			}
-			
-			pVisual.getChildren().add(userCard);
-			
-			translate(13 * i - 55, 125, userCard);
-		}
-		
-		//pVisual Opponent Card setup
-		for(int i = 1; i < 4; i++)
-		{
-			for(int j = 1; j < 6; j++)
-			{
-				ImageView userCard = new ImageView();
-			
-				if(i == 1)
+				for(int j = 1; j < 6; j++)
 				{
-					try
+					ImageView userCard = new ImageView();
+			
+					if(i == 1)
 					{
-						userCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fh.png")));
-					}	 
-					catch (Exception ex)
-					{
-						System.out.print("Image not Found");
+						try
+						{
+							userCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fh.png")));
+						}	 
+						catch (Exception ex)
+						{
+							System.out.print("Image not Found");
+						}
+						
+						pVisual.getChildren().add(userCard);
+					
+						translate(-300, 13 * j - 50, userCard);
 					}
-					
-					pVisual.getChildren().add(userCard);
-					
-					translate(-300, 13 * j - 50, userCard);
-				}
-				else if(i == 2)
-				{
-					try
+					else if(i == 2)
 					{
-						userCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
-					}	 
-					catch (Exception ex)
-					{
-						System.out.print("Image not Found");
+						try
+						{
+							userCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
+						}	 
+						catch (Exception ex)
+						{
+							System.out.print("Image not Found");
+						}
+					
+						pVisual.getChildren().add(userCard);
+					
+						translate(13 * j - 55, -125, userCard);
 					}
-					
-					pVisual.getChildren().add(userCard);
-					
-					translate(13 * j - 55, -125, userCard);
-				}
-				else
-				{
-					try
+					else
 					{
-						userCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fh.png")));
-					}	 
-					catch (Exception ex)
-					{
-						System.out.print("Image not Found");
+						try
+						{
+							userCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fh.png")));
+						}	 
+						catch (Exception ex)
+						{
+							System.out.print("Image not Found");
+						}
+					
+						pVisual.getChildren().add(userCard);
+					
+						translate(250, 13 * j - 50, userCard);
 					}
-					
-					pVisual.getChildren().add(userCard);
-					
-					translate(250, 13 * j - 50, userCard);
 				}
 			}
+		
+			//pVisual background set-up
+			background.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\GUIGraphic\\tableTexture.jpg")));
+			translate(-20, 0, background);
+		
+			//pVisual text background set-up (Used to see text / testing)
+			lblUserName.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
+			lblPlayer2Name.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
+			lblPlayer3Name.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
+			lblPlayer4Name.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
+		
+			//pTextLog alignment
+			translate(-465, 0, lblRecentAction);
+		
+			//Create Scene and set-up stage
+			Scene scene = new Scene(overallPane, 1024, 532);
+			playingStage.setScene(scene);
+			playingStage.setTitle("Go Fish!");
+			}	
+		catch(Exception e)
+		{
+			System.out.print(e);
 		}
-		
-		//pVisual background set-up
-		background.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\GUIGraphic\\tableTexture.jpg")));
-		translate(-20, 0, background);
-		
-		//pVisual text background set-up (Used to see text / testing)
-		lblUserName.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
-		lblPlayer2Name.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
-		lblPlayer3Name.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
-		lblPlayer4Name.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
-		
-		//pTextLog alignment
-		translate(-465, 0, lblRecentAction);
-		
-		//Create Scene and set-up stage
-		Scene scene = new Scene(overallPane, 1024, 532);
-		playingStage.setScene(scene);
-		playingStage.setTitle("Go Fish!");
-		
 	}
 	
 	//Creates the first box that a player would see
@@ -491,11 +497,12 @@ public class GUI extends Application
 		
 		try
 		{
-			Socket socket = new Socket("localhost", 8000);
+			socket = new Socket("localhost", 8000);
 			
-			DataOutputStream os = new DataOutputStream(socket.getOutputStream());
-			DataInputStream is = new DataInputStream(socket.getInputStream());
+			os = new DataOutputStream(socket.getOutputStream());
+			is = new DataInputStream(socket.getInputStream());
 
+			lblMessage1.setText(is.readUTF());
 			lblMessage2.setText(is.readUTF());
 			
 			btConfirm.setOnAction(e ->
@@ -505,7 +512,6 @@ public class GUI extends Application
 				{
 					//Sets the player name to what was entered
 					writeString(os, tfUserName.getText());
-					updateUserName(tfUserName.getText());
 					
 					//Closes this stage and shows the stage for the actual game
 					startStage.close();
