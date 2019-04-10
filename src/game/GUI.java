@@ -20,16 +20,22 @@ import static game.Util.*;
 
 public class GUI extends Application
 {	
-	//Socket socket;
+	Socket socket;
 	
-	//DataOutputStream os;
-	//DataInputStream is;
+	DataOutputStream os;
+	DataInputStream is;
 	
-	//static GameServer server = new GameServer();
+	static GameServer server = new GameServer();
 	
 	//Creates global stages to allow only one stage to be active at once
 	Stage playingStage = new Stage();
 	Stage startStage = new Stage();
+	
+	//Pane initialization, global for method access
+	BorderPane overallPane = new BorderPane();
+	StackPane pInteraction = new StackPane();
+	StackPane pVisual = new StackPane();
+	StackPane pTextLog = new StackPane();
 	
 	//Public GUI Components to send to server/client
 	static TextField tfUserName = new TextField();
@@ -61,6 +67,7 @@ public class GUI extends Application
 	
 	public static void main(String[] args) throws Exception
 	{
+		server.start();
 		launch(args);
 	}
 
@@ -71,12 +78,6 @@ public class GUI extends Application
 		{	
 			//Starts the game, allowing user to input a name
 			startGameGUI();
-			
-			//Pane initialization
-			BorderPane overallPane = new BorderPane();
-			StackPane pInteraction = new StackPane();
-			StackPane pVisual = new StackPane();
-			StackPane pTextLog = new StackPane();
 		
 			//Background Image initialization
 			ImageView background = new ImageView();
@@ -208,7 +209,7 @@ public class GUI extends Application
 			
 				//Creates actions for the buttons
 				btYes.setOnAction(f ->
-				{
+				{	
 					confirmStage.close();
 					playingStage.close();
 				});
@@ -242,7 +243,7 @@ public class GUI extends Application
 		
 			btConfirmAction.setOnAction(e -> 
 			{
-				for(int i = 0; i < 4; i++)
+				for(int i = 0; i < server.getGame().numPlayers(); i++)
 				{
 					for(int j = 0; j < 5; j++)
 					{	
@@ -252,23 +253,7 @@ public class GUI extends Application
 			
 			
 				//Update User's hand
-				for(int i = 1; i < 6; i++)
-				{
-					ImageView userCard = new ImageView();
-				
-					try
-					{
-						userCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\" + i + ".png")));
-					} 
-					catch (Exception ex)
-					{
-						System.out.print("Image not Found");
-					}
-				
-					pVisual.getChildren().add(userCard);
-				
-					translate(13 * i - 55, 125, userCard);
-				}
+				updateHand(pVisual);
 			});
 		
 		
@@ -353,26 +338,7 @@ public class GUI extends Application
 			{
 				lblPlayer2Name.setRotate(90);
 			});
-		
-			//pVisual Card setup
-			for(int i = 1; i < 6; i++)
-			{
-				ImageView userCard = new ImageView();
-				
-				try
-				{
-					userCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\" + i + ".png")));
-				} 
-				catch (Exception ex)
-				{
-					System.out.print("Image not Found");
-				}
 			
-				pVisual.getChildren().add(userCard);
-			
-				translate(13 * i - 55, 125, userCard);
-			}
-		
 			//pVisual Opponent Card setup
 			for(int i = 1; i < 4; i++)
 			{
@@ -459,8 +425,8 @@ public class GUI extends Application
 		StackPane startPane = new StackPane();
 		
 		//Creates components
-		Label lblMessage1 = new Label("Welcome!");
-		Label lblMessage2 = new Label("Please Enter Your Name!");
+		Label lblMessage1 = new Label("");
+		Label lblMessage2 = new Label("");
 		
 		Button btConfirm = new Button("Play the Game!");
 		
@@ -496,15 +462,17 @@ public class GUI extends Application
 		
 		try
 		{
-			/*
+			
 			socket = new Socket("localhost", 8000);
 			
 			os = new DataOutputStream(socket.getOutputStream());
 			is = new DataInputStream(socket.getInputStream());
 
-			lblMessage1.setText(is.readUTF());
-			lblMessage2.setText(is.readUTF());
-			*/
+			String fromServer = is.readUTF();
+			
+			lblMessage1.setText(fromServer.substring(0, 29));
+			lblMessage2.setText(fromServer.substring(29));
+			
 			
 			btConfirm.setOnAction(e ->
 			{
@@ -512,12 +480,14 @@ public class GUI extends Application
 				if(tfUserName.getText().compareTo("") != 0)
 				{
 					//Sets the player name to what was entered
-					//writeString(os, tfUserName.getText());
+					writeString(os, tfUserName.getText());
 					updateUserName(tfUserName.getText());
 					
 					//Closes this stage and shows the stage for the actual game
 					startStage.close();
 					playingStage.show();
+					
+					updateHand(pVisual);
 				}
 				else
 				{
@@ -529,7 +499,7 @@ public class GUI extends Application
 		}
 		catch (Exception e)
 		{
-			System.out.println(e);
+			System.out.println("Start up failed");
 		}
 		
 	}
@@ -546,6 +516,30 @@ public class GUI extends Application
 	{
 		userName = newName;
 		lblUserName.setText(newName);
+	}
+	
+	//Updates the default values of the cards with the user's true hand
+	public void updateHand(StackPane pVisual)
+	{
+		//pVisual Card setup
+		for(int i = 0; i < 5; i++)
+		{
+			ImageView userCard = new ImageView();
+			
+			try
+			{
+				userCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\" + 
+																server.getGame().findPlayer(userName).getHand().get(i) + ".png")));
+			} 
+			catch (Exception ex)
+			{
+				System.out.print("Image not Found");
+			}
+		
+			pVisual.getChildren().add(userCard);
+		
+			translate(13 * i - 55, 125, userCard);
+		}
 	}
 	
 	//The following methods allows client/server interaction
@@ -588,6 +582,4 @@ public class GUI extends Application
 	{
 		lblPlayerScore.setText("Your Score: " + playerScore);
 	}
-	
-	
 }
