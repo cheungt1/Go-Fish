@@ -34,7 +34,7 @@ public class GUI extends Application
 	DataInputStream is;
 	
 	ObservableList<String> userHand;
-	Deque<Player> playerList;
+	List<Player> playerList;
 	
 	public GUI() {
 		try
@@ -577,17 +577,15 @@ public class GUI extends Application
 			{
 				ObjectInputStream oIS = new ObjectInputStream(is);
 				
-				playerList = (Deque<Player>) oIS.readObject();
-				Player[] userGroup = new Player[playerList.size()-1];
+				playerList = (List<Player>) oIS.readObject();
 				
 				for(int i = playerList.size() - 1; i >= 0; i--)
 				{
-					Player current =  playerList.remove();
+					Player current =  playerList.get(i);
 					updateHand(current);
-					userGroup[playerList.size()-i] = current;
 				}
 				
-				updateUserName(userGroup);
+				updateGameName(playerList);
 			}
 			catch(Exception e)
 			{
@@ -595,8 +593,11 @@ public class GUI extends Application
 			}
 		});
 	}
-	public void updateUserName(Player[] uList) 
+	public void updateGameName(List<Player> uList) 
 	{
+		
+		if(uList.size() == 0)
+			return;
 		
 		int mePos = -1;
 		
@@ -604,73 +605,73 @@ public class GUI extends Application
 		 * finding the user's pos in the game
 		 * non 0 base indexing
 		 */
-		for(int i = 0; i < uList.length -1 ; i++) 
+		for(int i = 0; i < uList.size() -1 ; i++) 
 		{
-			if(uList[i] == null) 
+			if(uList.get(i) == null) 
 				break;
-			if(uList[i].getName().equals(userName))
+			if(uList.get(i).getName().equals(userName))
 				mePos = i +1;
 		}
 		
 		switch(mePos)
 		{
 			case 1:
-				lblPlayer2Name.setText(uList[1].getName());
-				rbPlayer2.setText(uList[1].getName());
+				lblPlayer2Name.setText(uList.get(1).getName());
+				rbPlayer2.setText(uList.get(1).getName());
 				
-				if(uList.length >= 3) 
+				if(uList.size() >= 3) 
 				{
-					lblPlayer3Name.setText(uList[2].getName());
-					rbPlayer3.setText(uList[2].getName());
+					lblPlayer3Name.setText(uList.get(2).getName());
+					rbPlayer3.setText(uList.get(2).getName());
 				}
 				
-				if(uList.length == 4)
+				if(uList.size() == 4)
 				{
-					lblPlayer4Name.setText(uList[3].getName());
-					rbPlayer4.setText(uList[3].getName());
+					lblPlayer4Name.setText(uList.get(3).getName());
+					rbPlayer4.setText(uList.get(3).getName());
 				}
 				
 				break;
 			case 2:
-				if(uList.length >=3 )
+				if(uList.size() >=3 )
 				{
-					lblPlayer2Name.setText(uList[2].getName());
-					rbPlayer2.setText(uList[2].getName());
+					lblPlayer2Name.setText(uList.get(2).getName());
+					rbPlayer2.setText(uList.get(2).getName());
 				}
 				
-				if(uList.length == 4) 
+				if(uList.size() == 4) 
 				{
-					lblPlayer3Name.setText(uList[3].getName());
-					rbPlayer3.setText(uList[3].getName());
+					lblPlayer3Name.setText(uList.get(3).getName());
+					rbPlayer3.setText(uList.get(3).getName());
 				}
 				
-				lblPlayer4Name.setText(uList[0].getName());
-				rbPlayer4.setText(uList[0].getName());
+				lblPlayer4Name.setText(uList.get(0).getName());
+				rbPlayer4.setText(uList.get(0).getName());
 				
 				break;
 			case 3:
-				if(uList.length == 4)
+				if(uList.size() == 4)
 				{
-					lblPlayer2Name.setText(uList[3].getName());
-					rbPlayer2.setText(uList[3].getName());
+					lblPlayer2Name.setText(uList.get(3).getName());
+					rbPlayer2.setText(uList.get(3).getName());
 				}
 				
-				lblPlayer3Name.setText(uList[0].getName());
-				rbPlayer3.setText(uList[0].getName());
+				lblPlayer3Name.setText(uList.get(0).getName());
+				rbPlayer3.setText(uList.get(0).getName());
 				
-				lblPlayer4Name.setText(uList[1].getName());
-				rbPlayer4.setText(uList[1].getName());
+				lblPlayer4Name.setText(uList.get(1).getName());
+				rbPlayer4.setText(uList.get(1).getName());
 				
 				break;
 			case 4:
-				lblPlayer2Name.setText(uList[0].getName());
-				rbPlayer2.setText(uList[0].getName());
+				lblPlayer2Name.setText(uList.get(0).getName());
+				rbPlayer2.setText(uList.get(0).getName());
 								
-				lblPlayer3Name.setText(uList[1].getName());
-				rbPlayer3.setText(uList[1].getName());
+				lblPlayer3Name.setText(uList.get(1).getName());
+				rbPlayer3.setText(uList.get(1).getName());
 								
-				lblPlayer4Name.setText(uList[2].getName());
-				rbPlayer4.setText(uList[2].getName());
+				lblPlayer4Name.setText(uList.get(2).getName());
+				rbPlayer4.setText(uList.get(2).getName());
 								
 				break;			
 		}
