@@ -683,26 +683,6 @@ public class GUI extends Application
 		lblUserName.setText(newName);
 	}
 	
-	public void updateUserName(Player user, int pos)
-	{
-		switch(pos)
-		{
-			case 1:
-				userName = user.getName();
-				lblUserName.setText(user.getName());
-				
-				break;
-			case 2:
-				rbPlayer2.setText(user.getName());
-				break;
-			case 3:
-				rbPlayer3.setText(user.getName());
-				break;
-			case 4:
-				rbPlayer4.setText(user.getName());
-		}
-	}
-	
 	//Updates the default values of the cards with the user's true hand
 	public void updateHand(StackPane pVisual)
 	{
