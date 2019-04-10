@@ -249,7 +249,7 @@ public class GameServer extends Application {
 
             StringBuilder hand = new StringBuilder();
             for (int card : player.getHand()) {
-                hand.append(Game.toRank(card)).append(" ");
+                hand.append(card).append(" ");
             }
 
             return hand.toString();
