@@ -21,9 +21,22 @@ import static game.Util.*;
 public class GUI extends Application
 {	
 	Socket socket;
-	
 	DataOutputStream os;
 	DataInputStream is;
+	
+	
+	public GUI() {
+		try
+		{
+			socket = new Socket("10.200.117.230", 8000);
+			os = new DataOutputStream(socket.getOutputStream());
+			is = new DataInputStream(socket.getInputStream());
+		}
+		catch(Exception ex)
+		{
+			System.out.print(ex);
+		}
+	}
 	
 	static GameServer server = new GameServer();
 	
@@ -67,7 +80,7 @@ public class GUI extends Application
 	
 	public static void main(String[] args) throws Exception
 	{
-		server.start();
+		//server.start();
 		launch(args);
 	}
 
@@ -210,8 +223,32 @@ public class GUI extends Application
 				//Creates actions for the buttons
 				btYes.setOnAction(f ->
 				{	
+					/*Remove when multiple clients can connect
+					if(server.getGame().isEnded())
+					{
+						try
+						{	
+							is.close();
+							os.close();
+						}
+						catch(Exception ex)
+						{
+							System.out.println("Cannot close server correctly");
+						}
+					
+						confirmStage.close();
+						playingStage.close();
+					}
+					else
+					{
+						lblConfirm.setText("You can't leave an active game. \n\t   No Rage-quitting");
+					}
+					*/
+					
+					//Remove these two lines when above code can work
 					confirmStage.close();
 					playingStage.close();
+					
 				});
 			
 				btNo.setOnAction(f ->
@@ -425,8 +462,8 @@ public class GUI extends Application
 		StackPane startPane = new StackPane();
 		
 		//Creates components
-		Label lblMessage1 = new Label("");
-		Label lblMessage2 = new Label("");
+		Label lblMessage1 = new Label("Welcome");
+		Label lblMessage2 = new Label("Please enter your name");
 		
 		Button btConfirm = new Button("Play the Game!");
 		
@@ -460,47 +497,56 @@ public class GUI extends Application
 		startStage.setTitle("Welcome Player!");
 		startStage.show();
 		
-		try
-		{
-			
-			socket = new Socket("localhost", 8000);
-			
-			os = new DataOutputStream(socket.getOutputStream());
-			is = new DataInputStream(socket.getInputStream());
-
-			String fromServer = is.readUTF();
-			
-			lblMessage1.setText(fromServer.substring(0, 29));
-			lblMessage2.setText(fromServer.substring(29));
-			
-			
-			btConfirm.setOnAction(e ->
+		new Thread(() -> {
+			try
 			{
-				//Checks if the user entered a valid name or not
-				if(tfUserName.getText().compareTo("") != 0)
+				
+				//socket = new Socket("10.200.117.230", 8000);
+				
+	
+				//String fromServer = is.readUTF();
+				
+				//lblMessage1.setText(fromServer.substring(0, 29));
+				//lblMessage2.setText(fromServer.substring(29));
+				
+				
+				btConfirm.setOnAction(e ->
 				{
-					//Sets the player name to what was entered
-					writeString(os, tfUserName.getText());
-					updateUserName(tfUserName.getText());
-					
-					//Closes this stage and shows the stage for the actual game
-					startStage.close();
-					playingStage.show();
-					
-					updateHand(pVisual);
-				}
-				else
-				{
-					//Changes label to warn user of entering a name
-					lblMessage1.setVisible(false);
-					lblMessage2.setText("You MUST enter a name!");
-				}
-			});
-		}
-		catch (Exception e)
-		{
-			System.out.println("Start up failed");
-		}
+					//Checks if the user entered a valid name or not
+					if(tfUserName.getText().compareTo("") != 0)
+					{
+						//Sets the player name to what was entered
+						writeString(os, tfUserName.getText());
+						updateUserName(tfUserName.getText());
+						
+						try
+						{
+							is.readInt();
+						}
+						catch(Exception ex)
+						{
+							System.out.print("Forced to add this");
+						}
+						
+						//Closes this stage and shows the stage for the actual game
+						startStage.close();
+						playingStage.show();
+						
+						updateHand(pVisual);
+					}
+					else
+					{
+						//Changes label to warn user of entering a name
+						lblMessage1.setVisible(false);
+						lblMessage2.setText("You MUST enter a name!");
+					}
+				});
+			}
+			catch (Exception e)
+			{
+				System.out.println("Start up failed");
+			}			
+		}).start();
 		
 	}
 	
@@ -521,6 +567,19 @@ public class GUI extends Application
 	//Updates the default values of the cards with the user's true hand
 	public void updateHand(StackPane pVisual)
 	{
+		String hand = "";
+		
+		try
+		{
+			hand = is.readUTF();
+		}
+		catch(Exception e)
+		{
+			System.out.print("Could not read");
+		}
+		
+		String[] handArr = hand.split(" ");
+		
 		//pVisual Card setup
 		for(int i = 0; i < 5; i++)
 		{
@@ -529,7 +588,7 @@ public class GUI extends Application
 			try
 			{
 				userCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\" + 
-																server.getGame().findPlayer(userName).getHand().get(i) + ".png")));
+																handArr[i] + ".png")));
 			} 
 			catch (Exception ex)
 			{
