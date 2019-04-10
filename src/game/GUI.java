@@ -3,9 +3,18 @@ package game;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
+import java.io.ObjectInputStream;
 import java.net.Socket;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.List;
+import java.util.TreeSet;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.geometry.*;
 import javafx.scene.*;
 import javafx.scene.control.*;
@@ -24,6 +33,8 @@ public class GUI extends Application
 	DataOutputStream os;
 	DataInputStream is;
 	
+	ObservableList<String> userHand;
+	List<Player> playerList;
 	
 	public GUI() {
 		try
@@ -38,7 +49,7 @@ public class GUI extends Application
 		}
 	}
 	
-	static GameServer server = new GameServer();
+	//Game game = new Game();
 	
 	//Creates global stages to allow only one stage to be active at once
 	Stage playingStage = new Stage();
@@ -49,6 +60,10 @@ public class GUI extends Application
 	StackPane pInteraction = new StackPane();
 	StackPane pVisual = new StackPane();
 	StackPane pTextLog = new StackPane();
+	
+	Label lblPlayer2Name = new Label("Player 2");
+	Label lblPlayer3Name = new Label("Player 3");
+	Label lblPlayer4Name = new Label("Player 4");
 	
 	//Public GUI Components to send to server/client
 	static TextField tfUserName = new TextField();
@@ -98,9 +113,6 @@ public class GUI extends Application
 			//Label initialization
 			Label lblPlayerSection = new Label("Available Players");
 			Label lblCardSection =  new Label("Select a Card Value");
-			Label lblPlayer2Name = new Label("Player 2");
-			Label lblPlayer3Name = new Label("Player 3");
-			Label lblPlayer4Name = new Label("Player 4");
 			Label lblRecentAction = new Label("Test Text log");
 		
 			//Button initialization
@@ -118,7 +130,6 @@ public class GUI extends Application
 			rbPlayer2.setSelected(true);
 			
 			//Sets up ComboBox's values
-			cbCardValues.getItems().addAll("Ace", "2", "3", "4", "5", "6", "7", "8", "9", "Jack", "Queen", "King");
 			
 			//The following two blocks of code are from: https://stackoverflow.com/questions/45144853/javafx-combobox-displayed-item-font-size?rq=1
 			cbCardValues.setCellFactory(l -> new ListCell<String>() {
@@ -153,7 +164,7 @@ public class GUI extends Application
 			//End of code from outside help
 		
 			//Combo box functionality
-			cbCardValues.setValue("Ace");
+			cbCardValues.setValue(cbCardValues.getItems().get(0));
 		
 			ImageView imgCard = new ImageView();
 			ImageView imgCardBack1 = new ImageView(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
@@ -280,7 +291,7 @@ public class GUI extends Application
 		
 			btConfirmAction.setOnAction(e -> 
 			{
-				for(int i = 0; i < server.getGame().numPlayers(); i++)
+				for(int i = 0; i < 4; i++)
 				{
 					for(int j = 0; j < 5; j++)
 					{	
@@ -448,6 +459,7 @@ public class GUI extends Application
 			Scene scene = new Scene(overallPane, 1024, 532);
 			playingStage.setScene(scene);
 			playingStage.setTitle("Go Fish!");
+			
 			}	
 		catch(Exception e)
 		{
@@ -557,11 +569,138 @@ public class GUI extends Application
 		node.setTranslateY(y);
 	}
 	
+	public void updateInfo()
+	{
+		new Thread(() ->
+		{
+			try
+			{
+				ObjectInputStream oIS = new ObjectInputStream(is);
+				
+				playerList = (List<Player>) oIS.readObject();
+				
+				for(int i = playerList.size() - 1; i >= 0; i--)
+				{
+					Player current =  playerList.get(i);
+					updateHand(current);
+				}
+				
+				updateGameName(playerList);
+			}
+			catch(Exception e)
+			{
+				System.out.println("Update info failed");
+			}
+		});
+	}
+	public void updateGameName(List<Player> uList) 
+	{
+		
+		if(uList.size() == 0)
+			return;
+		
+		int mePos = -1;
+		
+		/*
+		 * finding the user's pos in the game
+		 * non 0 base indexing
+		 */
+		for(int i = 0; i < uList.size() -1 ; i++) 
+		{
+			if(uList.get(i) == null) 
+				break;
+			if(uList.get(i).getName().equals(userName))
+				mePos = i +1;
+		}
+		
+		switch(mePos)
+		{
+			case 1:
+				lblPlayer2Name.setText(uList.get(1).getName());
+				rbPlayer2.setText(uList.get(1).getName());
+				
+				if(uList.size() >= 3) 
+				{
+					lblPlayer3Name.setText(uList.get(2).getName());
+					rbPlayer3.setText(uList.get(2).getName());
+				}
+				
+				if(uList.size() == 4)
+				{
+					lblPlayer4Name.setText(uList.get(3).getName());
+					rbPlayer4.setText(uList.get(3).getName());
+				}
+				
+				break;
+			case 2:
+				if(uList.size() >=3 )
+				{
+					lblPlayer2Name.setText(uList.get(2).getName());
+					rbPlayer2.setText(uList.get(2).getName());
+				}
+				
+				if(uList.size() == 4) 
+				{
+					lblPlayer3Name.setText(uList.get(3).getName());
+					rbPlayer3.setText(uList.get(3).getName());
+				}
+				
+				lblPlayer4Name.setText(uList.get(0).getName());
+				rbPlayer4.setText(uList.get(0).getName());
+				
+				break;
+			case 3:
+				if(uList.size() == 4)
+				{
+					lblPlayer2Name.setText(uList.get(3).getName());
+					rbPlayer2.setText(uList.get(3).getName());
+				}
+				
+				lblPlayer3Name.setText(uList.get(0).getName());
+				rbPlayer3.setText(uList.get(0).getName());
+				
+				lblPlayer4Name.setText(uList.get(1).getName());
+				rbPlayer4.setText(uList.get(1).getName());
+				
+				break;
+			case 4:
+				lblPlayer2Name.setText(uList.get(0).getName());
+				rbPlayer2.setText(uList.get(0).getName());
+								
+				lblPlayer3Name.setText(uList.get(1).getName());
+				rbPlayer3.setText(uList.get(1).getName());
+								
+				lblPlayer4Name.setText(uList.get(2).getName());
+				rbPlayer4.setText(uList.get(2).getName());
+								
+				break;			
+		}
+	}
 	//Updates the String, userName, and the label, lblUserName
 	public void updateUserName(String newName)
 	{
 		userName = newName;
 		lblUserName.setText(newName);
+	}
+	
+	public void updateUserName(Player user, int pos)
+	{
+		switch(pos)
+		{
+			case 1:
+				userName = user.getName();
+				lblUserName.setText(user.getName());
+				
+				break;
+			case 2:
+				rbPlayer2.setText(user.getName());
+				break;
+			case 3:
+				rbPlayer3.setText(user.getName());
+				break;
+			case 4:
+				rbPlayer4.setText(user.getName());
+		}
 	}
 	
 	//Updates the default values of the cards with the user's true hand
@@ -580,8 +719,11 @@ public class GUI extends Application
 		
 		String[] handArr = hand.split(" ");
 		
+		//userHand = FXCollections.observableList(Arrays.asList(handArr));
+		//userHand.addListener();
+		
 		//pVisual Card setup
-		for(int i = 0; i < 5; i++)
+		for(int i = 0; i < handArr.length; i++)
 		{
 			ImageView userCard = new ImageView();
 			
@@ -599,6 +741,45 @@ public class GUI extends Application
 		
 			translate(13 * i - 55, 125, userCard);
 		}
+		
+		
+		cbCardValues.getItems().addAll(new TreeSet<String>(Arrays.asList(handArr)));
+	}
+	
+	public void updateHand(Player user)
+	{
+		
+		//userHand = FXCollections.observableList(Arrays.asList(handArr));
+		//userHand.addListener();
+		
+		//pVisual Card setup
+		for(int i = 0; i < user.getHand().size(); i++)
+		{
+			ImageView userCard = new ImageView();
+			
+			try
+			{
+				userCard.setImage(new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\" + 
+																user.getHand().get(i) + ".png")));
+			} 
+			catch (Exception ex)
+			{
+				System.out.print("Image not Found");
+			}
+		
+			pVisual.getChildren().add(userCard);
+		
+			translate(13 * i - 55, 125, userCard);
+		}
+		
+		String[] handArr = new String[user.getHand().size()];
+		
+		for(int i = 0; i < user.getHand().size(); i++)
+		{
+			handArr[i] = user.getHand().get(i).toString();
+		}
+		
+		cbCardValues.getItems().addAll(new TreeSet<String>(Arrays.asList(handArr)));
 	}
 	
 	//The following methods allows client/server interaction
