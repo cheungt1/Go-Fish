@@ -63,9 +63,22 @@ By using Java, we will create two objects, Card and Player, that will keep track
     
   **Did**
   1. Added graphics for center pile
+  2. Completed necessary components of Server/Client
   
   **Blocks/Challenges**
   1. Constantly updating the GUI for cards/hand update
+  
+### Week 5 (April 8 - April 11)
+  **Will**
+    1. Present
+  
+  **Did**
+    1. Implementing Server/Client into GUI
+    2. Testing most cases of the Go-Fish game
+    
+  **Blocks/Challenges**
+    1. Listener?
+    2. Constant update of information
 
 ## Team Members
 - Ruiming Zeng: GUI Design
