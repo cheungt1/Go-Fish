@@ -12,8 +12,14 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-import java.io.*;
-import java.net.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -111,7 +117,6 @@ public class GameServer extends Application {
         }
 
         players = new PlayerHandler[4];
-//        numPlayers = game.numPlayers();
         nextFree = 0;
     }
 
@@ -156,19 +161,24 @@ public class GameServer extends Application {
         DataInputStream is;
         DataOutputStream os;
 
-        PlayerHandler(Player player, DataInputStream is, DataOutputStream os) throws IOException {
+        PlayerHandler(Player player, DataInputStream is, DataOutputStream os) {
             this.player = player;
             this.is = is;
             this.os = os;
 
             players[nextFree] = this;
 
-            for (int i = players.length - 1; i >= 0; i--) {
-                PlayerHandler handler = players[i];
-                if (handler != null)
-                    new ObjectOutputStream(handler.os).writeObject(game.players());
-                else
-                    nextFree = i;
+            // send list of names to client
+            StringBuilder names = new StringBuilder();
+            for (String name : players())
+                names.append(name).append(" ");
+            writeString(os, names.toString());
+
+            // update nextFree
+            int i = 0;
+            while (i < 4 && players[i] != null) {
+                i--;
+                nextFree = i;
             }
 
         }
