@@ -12,10 +12,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.EOFException;
-import java.io.IOException;
+import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +31,7 @@ public class GameServer extends Application {
     private static int port;
 
     private static PlayerHandler[] players;
-    private static int numPlayers;
+    private static int nextFree;
 
     public static void main(String[] args) {
         launch(args);
@@ -114,7 +111,8 @@ public class GameServer extends Application {
         }
 
         players = new PlayerHandler[4];
-        numPlayers = game.numPlayers();
+//        numPlayers = game.numPlayers();
+        nextFree = 0;
     }
 
     public static Game getGame() {
@@ -140,16 +138,15 @@ public class GameServer extends Application {
         return names;
     }
 
-    private static PlayerHandler remove(PlayerHandler player) {
+    private static int removeHandler(PlayerHandler player) {
         for (int i = 0; i < players.length; i++) {
             if (players[i] == player) {
-                PlayerHandler removed = players[i];
                 players[i] = null;
-                return removed;
+                return i;
             }
         }
 
-        return null;
+        return -1;
     }
 
     private class PlayerHandler implements Runnable {
@@ -159,12 +156,21 @@ public class GameServer extends Application {
         DataInputStream is;
         DataOutputStream os;
 
-        PlayerHandler(Player player, DataInputStream is, DataOutputStream os) {
+        PlayerHandler(Player player, DataInputStream is, DataOutputStream os) throws IOException {
             this.player = player;
             this.is = is;
             this.os = os;
 
-            players[numPlayers++] = this;
+            players[nextFree] = this;
+
+            for (int i = players.length - 1; i >= 0; i--) {
+                PlayerHandler handler = players[i];
+                if (handler != null)
+                    new ObjectOutputStream(handler.os).writeObject(game.players());
+                else
+                    nextFree = i;
+            }
+
         }
 
         @Override
@@ -179,6 +185,10 @@ public class GameServer extends Application {
                     writeString(os, thisTurn.getName());
                     Platform.runLater(() -> ta.appendText(String.format("[Server] %s's turn\n",
                             thisTurn.getName())));
+
+                    while (!thisTurn.equals(player)) {
+                        Thread.sleep(1);
+                    }
 
                     // if that player is this player
                     if (!game.isEnded() && thisTurn.equals(player)) {
@@ -228,7 +238,7 @@ public class GameServer extends Application {
             } catch (SocketException | EOFException disconnect) {
                 try {
                     game.playerQueue().remove(player);
-                    remove(this);
+                    nextFree = removeHandler(this);
 
                     is.close();
                     os.close();
@@ -238,7 +248,7 @@ public class GameServer extends Application {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            } catch (IOException e) {
+            } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }
         }
