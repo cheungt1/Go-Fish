@@ -86,6 +86,8 @@ public class GUI extends Application {
 
     static int playerScore = 0;
     static Label lblPlayerScore = new Label("Your Score: " + playerScore);
+    
+    boolean isGameStarted = false;
 
     public static void main(String[] args) {
         // server.start();
@@ -109,7 +111,7 @@ public class GUI extends Application {
             // Button initialization
             Button btConfirmAction = new Button("Ask for that card");
             Button btQuit = new Button("Leave Game");
-            Button btStartGame = new Button("Start Game");
+            Button btReady = new Button("Ready Up");
 
             // Stage modifications
             playingStage.initStyle(StageStyle.UNDECORATED);
@@ -120,6 +122,10 @@ public class GUI extends Application {
             rbPlayer4.setToggleGroup(rbPlayers);
 
             rbPlayer2.setSelected(true);
+            
+            rbPlayer2.setVisible(false);
+            rbPlayer3.setVisible(false);
+            rbPlayer4.setVisible(false);
 
             // Sets up ComboBox's values
 
@@ -229,16 +235,6 @@ public class GUI extends Application {
 
                 // Creates actions for the buttons
                 btYes.setOnAction(f -> {
-                    /*
-                     * Remove when multiple clients can connect if(server.getGame().isEnded()) { try
-                     * { is.close(); os.close(); } catch(Exception ex) {
-                     * System.out.println("Cannot close server correctly"); }
-                     *
-                     * confirmStage.close(); playingStage.close(); } else {
-                     * lblConfirm.setText("You can't leave an active game. \n\t   No Rage-quitting"
-                     * ); }
-                     */
-
                     // Remove these two lines when above code can work
                     confirmStage.close();
                     playingStage.close();
@@ -282,13 +278,15 @@ public class GUI extends Application {
             // Setting font sizes
             lblPlayerSection.setFont(f20);
             lblCardSection.setFont(f20);
+            
             lblPlayerScore.setFont(f18);
             rbPlayer2.setFont(f18);
             rbPlayer3.setFont(f18);
             rbPlayer4.setFont(f18);
             btConfirmAction.setFont(f18);
             btQuit.setFont(f18);
-            btStartGame.setFont(f18);
+            btReady.setFont(f18);
+            
             lblRecentAction.setFont(f16);
             lblUserName.setFont(f16);
             lblPlayer2Name.setFont(f16);
@@ -298,9 +296,13 @@ public class GUI extends Application {
             // Adding all components into panes
             pInteraction.getChildren().addAll(lblPlayerScore, lblPlayerSection, lblCardSection, imgCard, rbPlayer2,
                     rbPlayer3, rbPlayer4, cbCardValues, btConfirmAction, btQuit);
-            pVisual.getChildren().addAll(background, imgCardBack1, imgCardBack2, imgCardBack3, btStartGame, lblUserName,
+            
+            pVisual.getChildren().addAll(background, imgCardBack1, imgCardBack2, imgCardBack3, btReady, lblUserName,
                     lblPlayer2Name, lblPlayer3Name, lblPlayer4Name);
+            
             pTextLog.getChildren().addAll(lblRecentAction);
+            
+            pInteraction.setVisible(false);
 
             overallPane.setTop(pTextLog);
             overallPane.setCenter(pVisual);
@@ -335,7 +337,7 @@ public class GUI extends Application {
             translate(-27, 0, imgCardBack1);
             translate(-25, -2, imgCardBack2);
             translate(-23, -4, imgCardBack3);
-            translate(-27, 0, btStartGame);
+            translate(-27, 0, btReady);
             
             // Label actions set-up
             // Click and hold on the label to re-orient the label to read the player's name
@@ -346,61 +348,76 @@ public class GUI extends Application {
             lblPlayer2Name.setOnMousePressed(e -> lblPlayer2Name.setRotate(0));
             lblPlayer2Name.setOnMouseReleased(e -> lblPlayer2Name.setRotate(90));
 
+            //testing int
+            int size = 1;
+            
             // pVisual Opponent Card setup
-            btStartGame.setOnAction(e ->
+            btReady.setOnAction(e ->
             {	
-            	for (int i = 1; i < 4; i++) {
-            		for (int j = 1; j < 6; j++) {
-            			ImageView userCard = new ImageView();
+            	if(size >= 2) {
+            		updateInfo();
+            		isGameStarted = true;
+            		for (int i = 1; i < 4; i++)
+            		{
+            			for (int j = 1; j < 6; j++) {
+            				ImageView userCard = new ImageView();
 
-            			if (i == 1) {
+            				if (i == 1) {
             				
-            				lblPlayer2Name.setVisible(true);
+            					lblPlayer2Name.setVisible(true);
+            					rbPlayer2.setVisible(true);
             				
-            				try {
-            					userCard.setImage(new Image(new FileInputStream(
-            							System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fh.png")));
-            				} catch (Exception ex) {
-            					ex.printStackTrace();
+            					try {
+            						userCard.setImage(new Image(new FileInputStream(
+            								System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fh.png")));
+            					} catch (Exception ex) {
+            						ex.printStackTrace();
+            					}
+
+            					pVisual.getChildren().add(userCard);
+
+            					translate(-300, 13 * j - 50, userCard);
+            				} else if (i == 2) {
+            				
+            					lblPlayer3Name.setVisible(true);
+            					rbPlayer3.setVisible(true);
+            				
+            					try {
+            						userCard.setImage(new Image(new FileInputStream(
+            								System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
+            					} catch (Exception ex) {
+            						ex.printStackTrace();
+            					}
+
+            					pVisual.getChildren().add(userCard);
+
+            					translate(13 * j - 55, -125, userCard);
+            				} else {
+            				
+            					lblPlayer4Name.setVisible(true);
+            					rbPlayer4.setVisible(true);
+            				
+            					try {
+            						userCard.setImage(new Image(new FileInputStream(
+            								System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fh.png")));
+            					} catch (Exception ex) {
+            						ex.printStackTrace();
+            					}
+
+            					pVisual.getChildren().add(userCard);
+
+            					translate(250, 13 * j - 50, userCard);
             				}
-
-            				pVisual.getChildren().add(userCard);
-
-            				translate(-300, 13 * j - 50, userCard);
-            			} else if (i == 2) {
-            				
-            				lblPlayer3Name.setVisible(true);
-            				
-            				try {
-            					userCard.setImage(new Image(new FileInputStream(
-            							System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
-            				} catch (Exception ex) {
-            					ex.printStackTrace();
-            				}
-
-            				pVisual.getChildren().add(userCard);
-
-            				translate(13 * j - 55, -125, userCard);
-            			} else {
-            				
-            				lblPlayer4Name.setVisible(true);
-            				
-            				try {
-            					userCard.setImage(new Image(new FileInputStream(
-            							System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fh.png")));
-            				} catch (Exception ex) {
-            					ex.printStackTrace();
-            				}
-
-            				pVisual.getChildren().add(userCard);
-
-            				translate(250, 13 * j - 50, userCard);
             			}
             		}
+            		
+            		btReady.setVisible(false);
+                	updateInfo();
             	}
-            	
-            	btStartGame.setVisible(false);
-            	updateInfo();
+            	else
+            	{
+            		lblRecentAction.setText("You must have at least TWO players.");
+            	}
             });
 
             // pVisual background set-up
@@ -474,13 +491,6 @@ public class GUI extends Application {
         new Thread(() -> {
             try {
 
-                // socket = new Socket("10.200.117.230", 8000);
-
-                // String fromServer = is.readUTF();
-
-                // lblMessage1.setText(fromServer.substring(0, 29));
-                // lblMessage2.setText(fromServer.substring(29));
-
                 btConfirm.setOnAction(e -> {
                     // Checks if the user entered a valid name or not
                     if (tfUserName.getText().compareTo("") != 0) {
@@ -519,17 +529,21 @@ public class GUI extends Application {
     }
 
     public void updateInfo() {
-        new Thread(() -> {
-            try {
-                playerList = is.readUTF();
-                String[] userGroup = playerList.split(" ");
+        
+    	new Thread(() -> {
+            if(!isGameStarted)
+            {
+            	try {
+            		playerList = is.readUTF();
+            		String[] userGroup = playerList.split(" ");
 
-            	System.out.print("test");
+            		System.out.println("test");
                 
-                Platform.runLater(() -> updateGameName(userGroup));
-                Platform.runLater(() -> updateHand());
-            } catch (Exception e) {
-                e.printStackTrace();
+            		Platform.runLater(() -> updateGameName(userGroup));
+            		Platform.runLater(() -> updateHand());
+            	} catch (Exception e) {
+            		e.printStackTrace();
+            	}
             }
         }).start();
     }
