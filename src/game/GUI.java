@@ -2,7 +2,6 @@ package game;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -20,19 +19,22 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TreeSet;
 
-import static game.Util.writeString;
+import static game.Util.*;
 
 public class GUI extends Application {
 	Socket socket;
 	DataOutputStream os;
 	DataInputStream is;
 
-	ObservableList<String> userHand;
+	ArrayList<ImageView> cardImages = new ArrayList<>();;
 	String playerList;
 
+	public Button btConfirmAction = new Button("Ask for that card");
+	
 	public GUI() {
 		try {
 			socket = new Socket("10.200.250.100", 8000);
@@ -109,7 +111,6 @@ public class GUI extends Application {
 			Label lblRecentAction = new Label("Test Text log");
 
 			// Button initialization
-			Button btConfirmAction = new Button("Ask for that card");
 			Button btQuit = new Button("Leave Game");
 			Button btReady = new Button("Ready Up");
 
@@ -239,6 +240,7 @@ public class GUI extends Application {
 					confirmStage.close();
 					playingStage.close();
 
+					System.exit(0);
 				});
 
 				btNo.setOnAction(f -> confirmStage.close());
@@ -265,7 +267,7 @@ public class GUI extends Application {
 			});
 
 			btConfirmAction.setOnAction(e -> {
-				String name = rbPlayers.getSelectedToggle().toString();
+				String name = ((RadioButton)rbPlayers.getSelectedToggle()).getText();
 				String card = cbCardValues.getValue();
 				writeString(os, String.format("%s %s", name, card));
 
@@ -351,67 +353,9 @@ public class GUI extends Application {
 
 			// pVisual Opponent Card setup
 			btReady.setOnAction(e -> {
-				if (size >= 2) {
-					updateInfo();
-					isGameStarted = true;
-					for (int i = 1; i < 4; i++) {
-						for (int j = 1; j < 6; j++) {
-							ImageView userCard = new ImageView();
-
-							if (i == 1) {
-
-								lblPlayer2Name.setVisible(true);
-								rbPlayer2.setVisible(true);
-
-								try {
-									userCard.setImage(new Image(new FileInputStream(
-											System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fh.png")));
-								} catch (Exception ex) {
-									ex.printStackTrace();
-								}
-
-								pVisual.getChildren().add(userCard);
-
-								translate(-300, 13 * j - 50, userCard);
-							} else if (i == 2) {
-
-								lblPlayer3Name.setVisible(true);
-								rbPlayer3.setVisible(true);
-
-								try {
-									userCard.setImage(new Image(new FileInputStream(
-											System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
-								} catch (Exception ex) {
-									ex.printStackTrace();
-								}
-
-								pVisual.getChildren().add(userCard);
-
-								translate(13 * j - 55, -125, userCard);
-							} else {
-
-								lblPlayer4Name.setVisible(true);
-								rbPlayer4.setVisible(true);
-
-								try {
-									userCard.setImage(new Image(new FileInputStream(
-											System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fh.png")));
-								} catch (Exception ex) {
-									ex.printStackTrace();
-								}
-
-								pVisual.getChildren().add(userCard);
-
-								translate(250, 13 * j - 50, userCard);
-							}
-						}
-					}
-
-					btReady.setVisible(false);
-					updateInfo();
-				} else {
-					lblRecentAction.setText("You must have at least TWO players.");
-				}
+				writeInt(os, 1);
+				btReady.setVisible(false);
+				btReady.setDisable(true);
 			});
 
 			// pVisual background set-up
@@ -522,20 +466,25 @@ public class GUI extends Application {
 		node.setTranslateY(y);
 	}
 
+	private boolean gameStarted = false;
+
 	public void updateInfo() {
 
 		new Thread(() -> {
 			if (!isGameStarted) {
 				try {
-					playerList = is.readUTF();
-					String[] userGroup = playerList.split(" ");
-
-					System.out.println("test");
-
-					Platform.runLater(() -> updateGameName(userGroup));
-					Platform.runLater(() -> updateHand());
-				} catch (Exception e) {
-					e.printStackTrace();
+					String msg = is.readUTF();
+					if (msg.equals("start")) {
+						gameStarted = true;
+						Platform.runLater(this::updateOtherHands);
+						Platform.runLater(this::updateHand);
+					} else {
+						playerList = msg;
+						String[] userGroup = playerList.split(" ");
+						Platform.runLater(() -> updateGameName(userGroup));
+					}
+				} catch (Exception x) {
+					x.printStackTrace();
 				}
 			}
 		}).start();
@@ -621,42 +570,26 @@ public class GUI extends Application {
 	}
 
 	// Updates the default values of the cards with the user's true hand
-	public void updateHand() {
+	public void updateHand_GUI() {
 		System.out.print("Updating hand");
 		String hand = "";
-		String oldHand = "";
-		
+
 		try {
-			oldHand = hand;
-			hand = is.readUTF();			
+			hand = is.readUTF();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		ObservableList<Node> n = pVisual.getChildren();
-		System.out.println(Arrays.deepToString(n.toArray()));
-		
-		String[] oldHandArr = oldHand.split(" ");
-		
-		/*
-		 * the player-self's hand image is always 
-		 * the 9th(0 base indexing) on the pVisual's list
-		 * we will remove all the card images until their previous
-		 * hand length
-		 */
-		for(int i = 24; i < oldHandArr.length; i++) {
-			pVisual.getChildren().remove(i);
-		}
-		
-		System.out.println("Old hand is removed, showing new cards");
-		
+
 		String[] handArr = hand.split(" ");
 
 		// userHand = FXCollections.observableList(Arrays.asList(handArr));
 		// userHand.addListener();
 
+		pVisual.getChildren().removeAll(cardImages);
+
 		// pVisual Card setup
 		for (int i = 0; i < handArr.length; i++) {
+
 			ImageView userCard = new ImageView();
 
 			try {
@@ -666,44 +599,15 @@ public class GUI extends Application {
 				ex.printStackTrace();
 			}
 
-			pVisual.getChildren().add(userCard);
-
+			cardImages.add(userCard);
 			translate(13 * i - 55, 125, userCard);
 		}
+
+		pVisual.getChildren().addAll(cardImages);
 
 		cbCardValues.getItems().addAll(new TreeSet<>(Arrays.asList(handArr)));
 
 		cbCardValues.setValue(cbCardValues.getItems().get(0));
-	}
-
-	public void updateHand(Player user) {
-
-		// userHand = FXCollections.observableList(Arrays.asList(handArr));
-		// userHand.addListener();
-
-		// pVisual Card setup
-		for (int i = 0; i < user.getHand().size(); i++) {
-			ImageView userCard = new ImageView();
-
-			try {
-				userCard.setImage(new Image(new FileInputStream(
-						System.getProperty("user.home") + "\\git\\Go-Fish\\card\\" + user.getHand().get(i) + ".png")));
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
-
-			pVisual.getChildren().add(userCard);
-
-			translate(13 * i - 55, 125, userCard);
-		}
-
-		String[] handArr = new String[user.getHand().size()];
-
-		for (int i = 0; i < user.getHand().size(); i++) {
-			handArr[i] = user.getHand().get(i).toString();
-		}
-
-		cbCardValues.getItems().addAll(new TreeSet<>(Arrays.asList(handArr)));
 	}
 
 	// The following methods allows client/server interaction
@@ -734,5 +638,73 @@ public class GUI extends Application {
 
 	private static void updateLabelScore() {
 		lblPlayerScore.setText("Your Score: " + playerScore);
+	}
+
+	public void updateOtherHands() {
+		for (int i = 1; i < 4; i++) {
+			for (int j = 1; j < 6; j++) {
+				ImageView userCard = new ImageView();
+
+				if (i == 1) {
+
+					lblPlayer2Name.setVisible(true);
+					rbPlayer2.setVisible(true);
+
+					try {
+						userCard.setImage(new Image(new FileInputStream(
+								System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fh.png")));
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
+
+					pVisual.getChildren().add(userCard);
+
+					translate(-300, 13 * j - 50, userCard);
+				} else if (i == 2) {
+
+					lblPlayer3Name.setVisible(true);
+					rbPlayer3.setVisible(true);
+
+					try {
+						userCard.setImage(new Image(new FileInputStream(
+								System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
+
+					pVisual.getChildren().add(userCard);
+
+					translate(13 * j - 55, -125, userCard);
+				} else {
+
+					lblPlayer4Name.setVisible(true);
+					rbPlayer4.setVisible(true);
+
+					try {
+						userCard.setImage(new Image(new FileInputStream(
+								System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fh.png")));
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
+
+					pVisual.getChildren().add(userCard);
+
+					translate(250, 13 * j - 50, userCard);
+				}
+			}
+		}
+	}
+	
+	private void updateHand() {
+		new Thread(() -> {
+			try {
+				while(gameStarted) {
+					int recv = is.readInt();
+					updateHand_GUI();
+				}
+			}catch(Exception ex) {
+				ex.printStackTrace();
+			}
+		}).start();
 	}
 }
