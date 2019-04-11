@@ -21,56 +21,89 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static game.Util.writeInt;
 import static game.Util.writeString;
 
+/**
+ * The server for the Go Fish game.
+ *
+ * Run this class directly to start a game server on the runner's
+ * address and port. It includes a simple UI that tells the user the
+ * IP and port of this server, and an area in which the interactions
+ * between the server and the client are shown.
+ */
 public class GameServer extends Application {
 
+    // the visual text area for server-client interactions
     private TextArea ta = new TextArea();
 
+    // Go Fish game
     private static Game game;
 
+    // this server's socket and its IP and port number
     private static ServerSocket serverSocket;
     private static String IP;
     private static int port;
 
+    // an array of player handlers
     private static PlayerHandler[] players;
+
+    // the next free index in the handler array
     private static int nextFree;
 
+    /**
+     * Execute to start the server and run the UI.
+     *
+     * @param args  arguments
+     */
     public static void main(String[] args) {
         launch(args);
     }
 
+    /**
+     * Overrides the start method in Application class.
+     *
+     * @param primaryStage  the main window
+     */
     @Override
     public void start(Stage primaryStage) {
+        // initialize class variables
         initialize();
         ta.appendText("[Server] Initialized\n");
 
+        // create a stack pane to hold the text area
         StackPane main = new StackPane(ta);
         main.setPadding(new Insets(5));
 
+        // labels for IP and port number
         Label IPLabel = new Label("IP: " + IP);
         Label portLabel = new Label("Port: " + port);
 
+        // HBox to hold the labels
         HBox infoHBox = new HBox(30);
         infoHBox.setPadding(new Insets(5));
         infoHBox.setAlignment(Pos.CENTER);
         infoHBox.getChildren().addAll(IPLabel, portLabel);
 
+        // base pane for organizing labels and text area
         BorderPane base = new BorderPane(main);
         base.setTop(infoHBox);
 
+        // create a scene
         Scene scene = new Scene(base);
+
+        // set stage info and show stage
         primaryStage.setScene(scene);
         primaryStage.setTitle("GoFish Server");
         primaryStage.setOnCloseRequest(event -> System.exit(1));
         primaryStage.show();
 
+        // set size of text area
         ta.setPrefSize(500, 350);
 
+        // start server thread
         new Thread(() -> {
             try {
 //                System.out.printf("[Waiting for connection at port %d ...]\n", port);
@@ -95,10 +128,9 @@ public class GameServer extends Application {
                         Thread.sleep(1);
                     }
                     writeInt(os, 1); // signal the client
-//                    System.out.println("wrote int");
-
                     Platform.runLater(() -> ta.appendText(String.format("[Server] %s has joined!\n", username)));
 
+                    // start a new player handler for the new player
                     new Thread(new PlayerHandler(newPlayer, is, os)).start();
                 }
             } catch (IOException | InterruptedException e) {
@@ -107,10 +139,14 @@ public class GameServer extends Application {
         }).start();
     }
 
+    /**
+     * Initialize class variables.
+     */
     private static void initialize() {
-        game = new Game();
-        port = 8000;
+        game = new Game(); // create  a new game
+        port = 8000; // set port number
 
+        // create server socket and retrieve user IP
         try {
             serverSocket = new ServerSocket(port);
             IP = InetAddress.getLocalHost().getHostAddress();
@@ -118,22 +154,40 @@ public class GameServer extends Application {
             e.printStackTrace();
         }
 
+        // create an array of size 4 because the maximum
+        // number of players is 4
         players = new PlayerHandler[4];
+
+        // next free index is at 0
         nextFree = 0;
     }
 
+    /**
+     * @return  the Go Fish game
+     */
     public static Game getGame() {
         return game;
     }
 
+    /**
+     * @return  this server's port number
+     */
     public static int getPort() {
         return port;
     }
 
+    /**
+     * @return  this server's IP address
+     */
     public static String getIP() {
         return IP;
     }
 
+    /**
+     * Get a list of current player names in the game.
+     *
+     * @return  an ArrayList of names in string
+     */
     public static List<String> players() {
         List<String> names = new ArrayList<>();
         for (PlayerHandler handler : players) {
@@ -145,6 +199,14 @@ public class GameServer extends Application {
         return names;
     }
 
+    /**
+     * Remove a player handler from the handler array.
+     *
+     * @param player the player handler
+     * @return the next free index
+     * @throws IllegalArgumentException if the given player handler
+     *      does not exist in the array
+     */
     private static int removeHandler(PlayerHandler player) {
         for (int i = 0; i < players.length; i++) {
             if (players[i] == player) {
@@ -153,21 +215,36 @@ public class GameServer extends Application {
             }
         }
 
-        return -1;
+        throw new IllegalArgumentException("Player Not Found: " + player);
     }
 
+    /**
+     * The handler class for each player in the game. This class
+     * implements the java.lang.Runnable interface to be easily
+     * passed into a thread.
+     */
     private class PlayerHandler implements Runnable {
 
+        // the player for this handler
         Player player;
 
+        // i/o streams
         DataInputStream is;
         DataOutputStream os;
 
+        /**
+         * Create a new handler with the given player and streams.
+         *
+         * @param player the player for this handler
+         * @param is the input stream for the player
+         * @param os the output stream for the player
+         */
         PlayerHandler(Player player, DataInputStream is, DataOutputStream os) {
             this.player = player;
             this.is = is;
             this.os = os;
 
+            // add this handler to the array
             players[nextFree] = this;
 
             // send list of names to client
@@ -177,19 +254,20 @@ public class GameServer extends Application {
             writeString(os, names.toString());
 
             // update nextFree
-            //BUG FOUND: Array out of bounds, index -1
             int i = 0;
             while (i < 4 && players[i] != null) {
                 i++;
                 nextFree = i;
             }
-
-            System.out.println(Arrays.toString(players));
         }
 
+        /**
+         * Override the abstract run() method in Runnable.
+         */
         @Override
         public void run() {
             try {
+                //noinspection InfiniteLoopStatement
                 while (true) {
                     // send this player's hand
                     writeString(os, formatHand());
@@ -249,11 +327,15 @@ public class GameServer extends Application {
                         writeInt(os, recv);
                     }
                 }
-            } catch (SocketException | EOFException disconnect) {
+            } catch (SocketException | EOFException disconnect) { // when client is disconnected
                 try {
+                    // remove this player from the queue
                     game.playerQueue().remove(player);
+
+                    // remove this handler from the array
                     nextFree = removeHandler(this);
 
+                    // close the i/o streams
                     is.close();
                     os.close();
 
@@ -267,10 +349,18 @@ public class GameServer extends Application {
             }
         }
 
+        /**
+         * Format the hand of a player to a string of cards to ease
+         * the reading for the client.
+         *
+         * @return  a string of cards separated by spaces
+         */
         private String formatHand() {
+            // if this player's hand is empty
             if (player.getHand().isEmpty())
                 return "";
 
+            // build the string
             StringBuilder hand = new StringBuilder();
             for (int card : player.getHand()) {
                 hand.append(card).append(" ");
