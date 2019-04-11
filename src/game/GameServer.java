@@ -177,6 +177,7 @@ public class GameServer extends Application {
             writeString(os, names.toString());
 
             // update nextFree
+            //BUG FOUND: Array out of bounds, index -1
             int i = 0;
             while (i < 4 && players[i] != null) {
                 i++;

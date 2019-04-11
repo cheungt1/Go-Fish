@@ -37,7 +37,7 @@ public class GUI extends Application {
 
 	public GUI() {
 		try {
-			socket = new Socket("10.200.117.230", 8000);
+			socket = new Socket("10.200.250.100", 8000);
 			os = new DataOutputStream(socket.getOutputStream());
 			is = new DataInputStream(socket.getInputStream());
 		} catch (Exception ex) {
@@ -158,7 +158,6 @@ public class GUI extends Application {
 			// End of code from outside help
 
 			// Combo box functionality
-			cbCardValues.setValue(cbCardValues.getItems().get(0));
 
 			ImageView imgCard = new ImageView();
 			ImageView imgCardBack1 = new ImageView(
@@ -496,7 +495,7 @@ public class GUI extends Application {
 						startStage.close();
 						playingStage.show();
 
-						updateHand(pVisual);
+						updateInfo();
 					} else {
 						// Changes label to warn user of entering a name
 						lblMessage1.setVisible(false);
@@ -517,21 +516,22 @@ public class GUI extends Application {
 	}
 
 	public void updateInfo() {
-//		new Thread(() -> {
+		new Thread(() -> {
 		try {
 			playerList = is.readUTF();
 			String[] userGroup = playerList.split(" ");
 
 			updateGameName(userGroup);
+			updateHand(pVisual);
 		} catch (Exception e) {
 			System.out.println("Update info failed");
 		}
-//		});
+		});
 	}
 
 	public void updateGameName(String[] uList) {
 
-		int mePos = -1;
+		int mePos = 0;
 
 		/*
 		 * finding the user's pos in the game non 0 base indexing
@@ -625,6 +625,7 @@ public class GUI extends Application {
 		// pVisual Card setup
 		for (int i = 0; i < handArr.length; i++) {
 			ImageView userCard = new ImageView();
+			
 
 			try {
 				userCard.setImage(new Image(new FileInputStream(
@@ -639,6 +640,8 @@ public class GUI extends Application {
 		}
 
 		cbCardValues.getItems().addAll(new TreeSet<String>(Arrays.asList(handArr)));
+		
+		cbCardValues.setValue(cbCardValues.getItems().get(0));
 	}
 
 	public void updateHand(Player user) {
