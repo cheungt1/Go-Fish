@@ -7,6 +7,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -53,6 +54,9 @@ public class GameServer extends Application {
     // the next free index in the handler array
     private static int nextFree;
 
+    // thread for accepting new players
+    private static Thread accept;
+
     /**
      * Execute to start the server and run the UI.
      *
@@ -75,7 +79,7 @@ public class GameServer extends Application {
 
         // create a stack pane to hold the text area
         StackPane main = new StackPane(ta);
-        main.setPadding(new Insets(5));
+        main.setPadding(new Insets(5, 5, 0, 5));
 
         // labels for IP and port number
         Label IPLabel = new Label("IP: " + IP);
@@ -87,9 +91,38 @@ public class GameServer extends Application {
         infoHBox.setAlignment(Pos.CENTER);
         infoHBox.getChildren().addAll(IPLabel, portLabel);
 
+        // a text field for server admin to run commands
+        TextField tfCommand = new TextField();
+        tfCommand.setOnAction(event -> {
+            String command = tfCommand.getText();
+            if (command.equals("reset")) {
+                accept.interrupt();
+
+                initialize();
+                while (serverSocket.isClosed()) {
+                    try {
+                        Thread.sleep(1);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                accept = new Thread(new AcceptPlayer());
+                accept.start();
+                Platform.runLater(() -> ta.appendText("[Server] has been reset"));
+            } else if (command.equals("players")) {
+                Platform.runLater(() -> ta.appendText("[Server] " + players()));
+            }
+        });
+
+        // stack pane to hold command text field
+        StackPane commandPane = new StackPane(tfCommand);
+        commandPane.setPadding(new Insets(0, 5, 5, 5));
+
         // base pane for organizing labels and text area
         BorderPane base = new BorderPane(main);
         base.setTop(infoHBox);
+        base.setBottom(commandPane);
 
         // create a scene
         Scene scene = new Scene(base);
@@ -104,7 +137,10 @@ public class GameServer extends Application {
         ta.setPrefSize(500, 350);
 
         // start server thread
-        new Thread(() -> {
+        accept = new Thread(new AcceptPlayer());
+        accept.start();
+
+        /*new Thread(() -> {
             try {
 //                System.out.printf("[Waiting for connection at port %d ...]\n", port);
                 Platform.runLater(() ->
@@ -136,7 +172,46 @@ public class GameServer extends Application {
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }
-        }).start();
+        }).start();*/
+    }
+
+    private class AcceptPlayer implements Runnable {
+
+        @Override
+        public void run() {
+            try {
+//                System.out.printf("[Waiting for connection at port %d ...]\n", port);
+                Platform.runLater(() ->
+                        ta.appendText(String.format("[Server] Waiting for connection at port %d ...\n", port)));
+
+                //noinspection InfiniteLoopStatement
+                while (true) {
+                    // accept player
+                    Socket playerSocket = serverSocket.accept();
+
+                    // retrieve i/o streams
+                    DataOutputStream os = new DataOutputStream(playerSocket.getOutputStream());
+                    DataInputStream is = new DataInputStream(playerSocket.getInputStream());
+
+                    // ask for username
+//                    writeString(os, "[Server] Welcome to Go Fish! Please enter your name: ");
+                    String username = is.readUTF();
+                    Player newPlayer = game.addPlayer(username);
+
+                    // ensures that the client can find this new player
+                    while (game.findPlayer(username) == null) {
+                        Thread.sleep(1);
+                    }
+                    writeInt(os, 1); // signal the client
+                    Platform.runLater(() -> ta.appendText(String.format("[Server] %s has joined!\n", username)));
+
+                    // start a new player handler for the new player
+                    new Thread(new PlayerHandler(newPlayer, is, os)).start();
+                }
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -148,6 +223,9 @@ public class GameServer extends Application {
 
         // create server socket and retrieve user IP
         try {
+            if (serverSocket != null)
+                serverSocket.close();
+
             serverSocket = new ServerSocket(port);
             IP = InetAddress.getLocalHost().getHostAddress();
         } catch (Exception e) {

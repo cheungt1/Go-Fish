@@ -193,7 +193,7 @@ public class Player implements Serializable {
      */
     @Override 
     public String toString() {
-    	return String.format("%s has %d points", name, score);
+    	return name;
     }
 
     @Override

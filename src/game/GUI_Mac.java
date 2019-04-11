@@ -612,7 +612,6 @@ public class GUI_Mac extends Application {
                 userCard.setImage(new Image(new FileInputStream("card/" + handArr[i] + ".png")));
             } catch (Exception ex) {
                 ex.printStackTrace();
-//				System.out.print("Image not Found");
             }
 
             pVisual.getChildren().add(userCard);
@@ -620,7 +619,13 @@ public class GUI_Mac extends Application {
             translate(13 * i - 55, 125, userCard);
         }
 
-        cbCardValues.getItems().addAll(new TreeSet<>(Arrays.asList(handArr)));
+        // convert cards in hand to their actual string representation
+        TreeSet<String> cards = new TreeSet<>();
+        for (String card : handArr) {
+            cards.add(Game.toRank(Integer.parseInt(card)));
+        }
+
+        cbCardValues.getItems().addAll(cards);
         cbCardValues.setValue(cbCardValues.getItems().get(0));
     }
 
