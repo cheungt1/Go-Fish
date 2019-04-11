@@ -1,6 +1,7 @@
 package game;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -108,6 +109,7 @@ public class GUI extends Application {
             // Button initialization
             Button btConfirmAction = new Button("Ask for that card");
             Button btQuit = new Button("Leave Game");
+            Button btStartGame = new Button("Start Game");
 
             // Stage modifications
             playingStage.initStyle(StageStyle.UNDECORATED);
@@ -123,7 +125,7 @@ public class GUI extends Application {
 
             // The following two blocks of code are from:
             // https://stackoverflow.com/questions/45144853/javafx-combobox-displayed-item-font-size?rq=1
-            cbCardValues.setCellFactory(l -> new ListCell<>() {
+            cbCardValues.setCellFactory(l -> new ListCell<String>() {
 
                 @Override
                 protected void updateItem(String item, boolean empty) {
@@ -138,7 +140,7 @@ public class GUI extends Application {
 
             });
 
-            cbCardValues.setButtonCell(new ListCell<>() {
+            cbCardValues.setButtonCell(new ListCell<String>() {
 
                 @Override
                 protected void updateItem(String item, boolean empty) {
@@ -153,9 +155,12 @@ public class GUI extends Application {
             });
 
             // End of code from outside help
+            
+            lblPlayer2Name.setVisible(false);
+            lblPlayer3Name.setVisible(false);
+            lblPlayer4Name.setVisible(false);
 
             // Combo box functionality
-
             ImageView imgCard = new ImageView();
             ImageView imgCardBack1 = new ImageView(
                     new Image(new FileInputStream(System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
@@ -271,7 +276,7 @@ public class GUI extends Application {
                 }
 
                 // Update User's hand
-                updateHand(pVisual);
+                updateHand();
             });
 
             // Setting font sizes
@@ -283,6 +288,7 @@ public class GUI extends Application {
             rbPlayer4.setFont(f18);
             btConfirmAction.setFont(f18);
             btQuit.setFont(f18);
+            btStartGame.setFont(f18);
             lblRecentAction.setFont(f16);
             lblUserName.setFont(f16);
             lblPlayer2Name.setFont(f16);
@@ -292,7 +298,7 @@ public class GUI extends Application {
             // Adding all components into panes
             pInteraction.getChildren().addAll(lblPlayerScore, lblPlayerSection, lblCardSection, imgCard, rbPlayer2,
                     rbPlayer3, rbPlayer4, cbCardValues, btConfirmAction, btQuit);
-            pVisual.getChildren().addAll(background, imgCardBack1, imgCardBack2, imgCardBack3, lblUserName,
+            pVisual.getChildren().addAll(background, imgCardBack1, imgCardBack2, imgCardBack3, btStartGame, lblUserName,
                     lblPlayer2Name, lblPlayer3Name, lblPlayer4Name);
             pTextLog.getChildren().addAll(lblRecentAction);
 
@@ -329,7 +335,8 @@ public class GUI extends Application {
             translate(-27, 0, imgCardBack1);
             translate(-25, -2, imgCardBack2);
             translate(-23, -4, imgCardBack3);
-
+            translate(-27, 0, btStartGame);
+            
             // Label actions set-up
             // Click and hold on the label to re-orient the label to read the player's name
             lblPlayer3Name.setOnMousePressed(e -> lblPlayer3Name.setRotate(0));
@@ -340,46 +347,61 @@ public class GUI extends Application {
             lblPlayer2Name.setOnMouseReleased(e -> lblPlayer2Name.setRotate(90));
 
             // pVisual Opponent Card setup
-            for (int i = 1; i < 4; i++) {
-                for (int j = 1; j < 6; j++) {
-                    ImageView userCard = new ImageView();
+            btStartGame.setOnAction(e ->
+            {	
+            	for (int i = 1; i < 4; i++) {
+            		for (int j = 1; j < 6; j++) {
+            			ImageView userCard = new ImageView();
 
-                    if (i == 1) {
-                        try {
-                            userCard.setImage(new Image(new FileInputStream(
-                                    System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fh.png")));
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
+            			if (i == 1) {
+            				
+            				lblPlayer2Name.setVisible(true);
+            				
+            				try {
+            					userCard.setImage(new Image(new FileInputStream(
+            							System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fh.png")));
+            				} catch (Exception ex) {
+            					ex.printStackTrace();
+            				}
 
-                        pVisual.getChildren().add(userCard);
+            				pVisual.getChildren().add(userCard);
 
-                        translate(-300, 13 * j - 50, userCard);
-                    } else if (i == 2) {
-                        try {
-                            userCard.setImage(new Image(new FileInputStream(
-                                    System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
+            				translate(-300, 13 * j - 50, userCard);
+            			} else if (i == 2) {
+            				
+            				lblPlayer3Name.setVisible(true);
+            				
+            				try {
+            					userCard.setImage(new Image(new FileInputStream(
+            							System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fv.png")));
+            				} catch (Exception ex) {
+            					ex.printStackTrace();
+            				}
 
-                        pVisual.getChildren().add(userCard);
+            				pVisual.getChildren().add(userCard);
 
-                        translate(13 * j - 55, -125, userCard);
-                    } else {
-                        try {
-                            userCard.setImage(new Image(new FileInputStream(
-                                    System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fh.png")));
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
+            				translate(13 * j - 55, -125, userCard);
+            			} else {
+            				
+            				lblPlayer4Name.setVisible(true);
+            				
+            				try {
+            					userCard.setImage(new Image(new FileInputStream(
+            							System.getProperty("user.home") + "\\git\\Go-Fish\\card\\b1fh.png")));
+            				} catch (Exception ex) {
+            					ex.printStackTrace();
+            				}
 
-                        pVisual.getChildren().add(userCard);
+            				pVisual.getChildren().add(userCard);
 
-                        translate(250, 13 * j - 50, userCard);
-                    }
-                }
-            }
+            				translate(250, 13 * j - 50, userCard);
+            			}
+            		}
+            	}
+            	
+            	btStartGame.setVisible(false);
+            	updateInfo();
+            });
 
             // pVisual background set-up
             background.setImage(new Image(new FileInputStream(
@@ -465,18 +487,18 @@ public class GUI extends Application {
                         // Sets the player name to what was entered
                         writeString(os, tfUserName.getText());
                         updateUserName(tfUserName.getText());
+                        System.out.print(userName);
 
                         try {
                             is.readInt();
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
-
+                        
                         // Closes this stage and shows the stage for the actual game
                         startStage.close();
                         playingStage.show();
-
-                        updateInfo();
+                        
                     } else {
                         // Changes label to warn user of entering a name
                         lblMessage1.setVisible(false);
@@ -502,17 +524,20 @@ public class GUI extends Application {
                 playerList = is.readUTF();
                 String[] userGroup = playerList.split(" ");
 
-                updateGameName(userGroup);
-                updateHand(pVisual);
+            	System.out.print("test");
+                
+                Platform.runLater(() -> updateGameName(userGroup));
+                Platform.runLater(() -> updateHand());
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        });
+        }).start();
     }
 
     public void updateGameName(String[] uList) {
 
-        int mePos = 0;
+    	System.out.println("Updating names");
+        int mePos = -1;
 
         /*
          * finding the user's pos in the game non 0 base indexing
@@ -589,7 +614,8 @@ public class GUI extends Application {
     }
 
     // Updates the default values of the cards with the user's true hand
-    public void updateHand(StackPane pVisual) {
+    public void updateHand() {
+    	System.out.print("Updating hand");
         String hand = "";
 
         try {
