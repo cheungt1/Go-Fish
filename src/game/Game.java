@@ -174,7 +174,11 @@ public class Game implements Serializable {
 	}
 
 	public int draw() {
-		return convert(deck[deckPos++]);
+	    // TODO: infinite deck for testing
+	    if (deckPos >= 52)
+	        deckPos = 0;
+
+		return deck[deckPos++];
 	}
 
 	public List<Player> players() {
@@ -195,6 +199,9 @@ public class Game implements Serializable {
     }
 
     public static String toRank(int card) {
+	    if (card < 0)
+	        throw new IllegalArgumentException("Invalid Card: " + card);
+
 	    card = convert(card);
 
 	    switch (card) {
