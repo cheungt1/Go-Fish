@@ -265,11 +265,9 @@ public class GUI extends Application {
 			});
 
 			btConfirmAction.setOnAction(e -> {
-				for (int i = 0; i < 4; i++) {
-					for (int j = 0; j < 5; j++) {
-						pVisual.getChildren().remove(8);
-					}
-				}
+				String name = rbPlayers.getSelectedToggle().toString();
+				String card = cbCardValues.getValue();
+				writeString(os, String.format("%s %s", name, card));
 
 				// Update User's hand
 				updateHand();
