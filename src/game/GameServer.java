@@ -21,6 +21,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static game.Util.writeInt;
@@ -94,6 +95,7 @@ public class GameServer extends Application {
                         Thread.sleep(1);
                     }
                     writeInt(os, 1); // signal the client
+//                    System.out.println("wrote int");
 
                     Platform.runLater(() -> ta.appendText(String.format("[Server] %s has joined!\n", username)));
 
@@ -177,10 +179,11 @@ public class GameServer extends Application {
             // update nextFree
             int i = 0;
             while (i < 4 && players[i] != null) {
-                i--;
+                i++;
                 nextFree = i;
             }
 
+            System.out.println(Arrays.toString(players));
         }
 
         @Override
@@ -273,6 +276,11 @@ public class GameServer extends Application {
             }
 
             return hand.toString();
+        }
+
+        @Override
+        public String toString() {
+            return player.toString();
         }
     }
 }
