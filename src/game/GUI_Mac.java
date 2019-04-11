@@ -20,9 +20,11 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TreeSet;
 
+import static game.Util.writeInt;
 import static game.Util.writeString;
 
 public class GUI_Mac extends Application {
@@ -80,7 +82,7 @@ public class GUI_Mac extends Application {
     String userName = "";
     Label lblUserName = new Label(userName); // Used to display the user's name
 
-    // Player user = GameServer.getGame().findPlayer(userName);
+    Button btConfirmAction;
 
     static int playerScore = 0;
     static Label lblPlayerScore = new Label("Your Score: " + playerScore);
@@ -105,8 +107,9 @@ public class GUI_Mac extends Application {
             Label lblRecentAction = new Label("Test Text log");
 
             // Button initialization
-            Button btConfirmAction = new Button("Ask for that card");
+            btConfirmAction = new Button("Ask for that card");
             Button btQuit = new Button("Leave Game");
+            Button btReady = new Button("Ready!");
 
             // Stage modifications
             playingStage.initStyle(StageStyle.UNDECORATED);
@@ -152,6 +155,10 @@ public class GUI_Mac extends Application {
             });
 
             // End of code from outside help
+
+            lblPlayer2Name.setVisible(false);
+            lblPlayer3Name.setVisible(false);
+            lblPlayer4Name.setVisible(false);
 
             ImageView imgCard = new ImageView();
             ImageView imgCardBack1 = new ImageView(
@@ -234,6 +241,7 @@ public class GUI_Mac extends Application {
                     confirmStage.close();
                     playingStage.close();
 
+                    System.exit(1);
                 });
 
                 btNo.setOnAction(f -> confirmStage.close());
@@ -260,14 +268,17 @@ public class GUI_Mac extends Application {
             });
 
             btConfirmAction.setOnAction(e -> {
-                for (int i = 0; i < 4; i++) {
+                /*for (int i = 0; i < 4; i++) {
                     for (int j = 0; j < 5; j++) {
                         pVisual.getChildren().remove(8);
                     }
-                }
+                }*/
+                String targetPlayer = ((RadioButton) rbPlayers.getSelectedToggle()).getText();
+                String targetCard = cbCardValues.getValue();
+                writeString(os, String.format("%s %s", targetPlayer, targetCard));
 
                 // Update User's hand
-                updateHand(pVisual);
+                updateHand_GUI();
             });
 
             // Setting font sizes
@@ -279,6 +290,7 @@ public class GUI_Mac extends Application {
             rbPlayer4.setFont(f18);
             btConfirmAction.setFont(f18);
             btQuit.setFont(f18);
+            btReady.setFont(f18);
             lblRecentAction.setFont(f16);
             lblUserName.setFont(f16);
             lblPlayer2Name.setFont(f16);
@@ -288,7 +300,7 @@ public class GUI_Mac extends Application {
             // Adding all components into panes
             pInteraction.getChildren().addAll(lblPlayerScore, lblPlayerSection, lblCardSection, imgCard, rbPlayer2,
                     rbPlayer3, rbPlayer4, cbCardValues, btConfirmAction, btQuit);
-            pVisual.getChildren().addAll(background, imgCardBack1, imgCardBack2, imgCardBack3, lblUserName,
+            pVisual.getChildren().addAll(background, imgCardBack1, imgCardBack2, imgCardBack3, btReady, lblUserName,
                     lblPlayer2Name, lblPlayer3Name, lblPlayer4Name);
             pTextLog.getChildren().addAll(lblRecentAction);
 
@@ -325,6 +337,7 @@ public class GUI_Mac extends Application {
             translate(-27, 0, imgCardBack1);
             translate(-25, -2, imgCardBack2);
             translate(-23, -4, imgCardBack3);
+            translate(-27, 0, btReady);
 
             // Label actions set-up
             // Click and hold on the label to re-orient the label to read the player's name
@@ -335,47 +348,17 @@ public class GUI_Mac extends Application {
             lblPlayer2Name.setOnMousePressed(e -> lblPlayer2Name.setRotate(0));
             lblPlayer2Name.setOnMouseReleased(e -> lblPlayer2Name.setRotate(90));
 
-            // pVisual Opponent Card setup
-            for (int i = 1; i < 4; i++) {
-                for (int j = 1; j < 6; j++) {
-                    ImageView userCard = new ImageView();
+            btReady.setOnAction(event -> {
+                writeInt(os, 1);
 
-                    if (i == 1) {
-                        try {
-                            userCard.setImage(new Image(new FileInputStream("card/b1fh.png")));
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-//							System.out.print("Image not Found");
-                        }
+                /*if (gameStarted) {
+                    updateOtherHands();
+                }*/
 
-                        pVisual.getChildren().add(userCard);
+                btReady.setVisible(false);
+                btReady.setDisable(true);
+            });
 
-                        translate(-300, 13 * j - 50, userCard);
-                    } else if (i == 2) {
-                        try {
-                            userCard.setImage(new Image(new FileInputStream("card/b1fv.png")));
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-//							System.out.print("Image not Found");
-                        }
-
-                        pVisual.getChildren().add(userCard);
-
-                        translate(13 * j - 55, -125, userCard);
-                    } else {
-                        try {
-                            userCard.setImage(new Image(new FileInputStream("card/b1fh.png")));
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-//							System.out.print("Image not Found");
-                        }
-
-                        pVisual.getChildren().add(userCard);
-
-                        translate(250, 13 * j - 50, userCard);
-                    }
-                }
-            }
 
             // pVisual background set-up
             background.setImage(new Image(new FileInputStream("GUIGraphic/tableTexture.jpg")));
@@ -493,24 +476,198 @@ public class GUI_Mac extends Application {
         node.setTranslateY(y);
     }
 
+    private boolean gameStarted = false;
+
     public void updateInfo() {
-        // change: thread
+        new Thread(() -> {
+            while (true) {
+                if (!gameStarted) {
+                    try {
+                        String msg = is.readUTF();
+                        System.out.println("msg = " + msg);
+                        if (msg.equals("start")) {
+                            gameStarted = true;
+                            System.out.println("game started");
+
+                            Platform.runLater(() -> {
+                                updateOtherHands();
+                                updateHand_GUI();
+                                updateHand();
+                            });
+
+//                            Platform.runLater(this::updateOtherHands);
+//                            Platform.runLater(this::updateHand_GUI);
+                        } else {
+                            System.out.println("game has not started");
+                            playerList = msg;
+                            System.out.println("players = " + playerList);
+                            String[] userGroup = playerList.split(" ");
+
+                            Platform.runLater(() -> updateGameName(userGroup));
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
+    }
+
+    private void updateHand() {
         new Thread(() -> {
             try {
-                playerList = is.readUTF();
-                String[] userGroup = playerList.split(" ");
+                while (gameStarted) {
+                    String thisTurn = is.readUTF();
+                    if (thisTurn.equals(userName)) {
+                        Platform.runLater(() -> btConfirmAction.setDisable(false));
 
-                // change: Platform.runLater
-                Platform.runLater(() -> updateGameName(userGroup));
-                Platform.runLater(() -> updateHand(pVisual));
+                        int recv = is.readInt();
+                        System.out.println("received " + recv + " cards");
+
+                        Platform.runLater(this::updateHand_GUI);
+                    } else {
+                        Platform.runLater(() -> btConfirmAction.setDisable(true));
+                        while (!thisTurn.equals(userName))
+                            Thread.sleep(1);
+                    }
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }).start();
     }
 
-    public void updateGameName(String[] uList) {
+    // Updates the String, userName, and the label, lblUserName
 
+    private ArrayList<ImageView> cardImages = new ArrayList<>();
+
+    // Updates the default values of the cards with the user's true hand
+
+    public void updateHand_GUI() {
+//        System.out.println("update my hand");
+
+        String hand = "";
+
+        try {
+            hand = is.readUTF();
+            System.out.println("my hand = " + hand);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+//        String[] oldHandArr = oldHand.split(" ");
+        String[] handArr = hand.split(" ");
+
+        pVisual.getChildren().removeAll(cardImages);
+
+        // userHand = FXCollections.observableList(Arrays.asList(handArr));
+        // userHand.addListener();
+
+        // pVisual Card setup
+        for (int i = 0; i < handArr.length; i++) {
+            ImageView userCard = new ImageView();
+
+            try {
+//                System.out.println(handArr[i]);
+                userCard.setImage(new Image(new FileInputStream("card/" + handArr[i] + ".png")));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
+            cardImages.add(userCard);
+            translate(13 * i - 55, 125, userCard);
+        }
+
+        pVisual.getChildren().addAll(cardImages);
+
+        // convert cards in hand to their actual string representation
+        TreeSet<String> cards = new TreeSet<>();
+        for (String card : handArr) {
+            cards.add(Game.toRank(Integer.parseInt(card)));
+        }
+
+        cbCardValues.getItems().addAll(cards);
+        cbCardValues.setValue(cbCardValues.getItems().get(0));
+    }
+    public void updateHand_GUI(Player user) {
+
+        // userHand = FXCollections.observableList(Arrays.asList(handArr));
+        // userHand.addListener();
+
+        // pVisual Card setup
+        for (int i = 0; i < user.getHand().size(); i++) {
+            ImageView userCard = new ImageView();
+
+            try {
+                userCard.setImage(new Image(new FileInputStream("card/" + user.getHand().get(i) + ".png")));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+//				System.out.print("Image not Found");
+            }
+
+            pVisual.getChildren().add(userCard);
+
+            translate(13 * i - 55, 125, userCard);
+        }
+
+        String[] handArr = new String[user.getHand().size()];
+
+        for (int i = 0; i < user.getHand().size(); i++) {
+            handArr[i] = user.getHand().get(i).toString();
+        }
+
+        cbCardValues.getItems().addAll(new TreeSet<>(Arrays.asList(handArr)));
+    }
+
+    public void updateOtherHands() {
+        System.out.println("update other hands");
+
+        // pVisual Opponent Card setup
+        for (int i = 1; i < 4; i++) {
+            for (int j = 1; j < 6; j++) {
+                ImageView userCard = new ImageView();
+
+                if (i == 1) {
+                    try {
+                        userCard.setImage(new Image(new FileInputStream("card/b1fh.png")));
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+
+                    pVisual.getChildren().add(userCard);
+
+                    translate(-300, 13 * j - 50, userCard);
+                } else if (i == 2) {
+                    try {
+                        userCard.setImage(new Image(new FileInputStream("card/b1fv.png")));
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+
+                    pVisual.getChildren().add(userCard);
+
+                    translate(13 * j - 55, -125, userCard);
+                } else {
+                    try {
+                        userCard.setImage(new Image(new FileInputStream("card/b1fh.png")));
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+
+                    pVisual.getChildren().add(userCard);
+
+                    translate(250, 13 * j - 50, userCard);
+                }
+            }
+        }
+    }
+
+    public void updateUserName(String newName) {
+        userName = newName;
+        lblUserName.setText(newName);
+    }
+
+    public void updateGameName(String[] uList) {
         int mePos = -1;
 
         /*
@@ -579,84 +736,6 @@ public class GUI_Mac extends Application {
 
                 break;
         }
-    }
-
-    // Updates the String, userName, and the label, lblUserName
-    public void updateUserName(String newName) {
-        userName = newName;
-        lblUserName.setText(newName);
-    }
-
-    // Updates the default values of the cards with the user's true hand
-    public void updateHand(StackPane pVisual) {
-        String hand = "";
-
-        try {
-            hand = is.readUTF();
-        } catch (Exception e) {
-            e.printStackTrace();
-//			System.out.print("Could not read");
-        }
-
-        String[] handArr = hand.split(" ");
-
-        // userHand = FXCollections.observableList(Arrays.asList(handArr));
-        // userHand.addListener();
-
-        // pVisual Card setup
-        for (int i = 0; i < handArr.length; i++) {
-            ImageView userCard = new ImageView();
-
-            try {
-//                System.out.println(handArr[i]);
-                userCard.setImage(new Image(new FileInputStream("card/" + handArr[i] + ".png")));
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-
-            pVisual.getChildren().add(userCard);
-
-            translate(13 * i - 55, 125, userCard);
-        }
-
-        // convert cards in hand to their actual string representation
-        TreeSet<String> cards = new TreeSet<>();
-        for (String card : handArr) {
-            cards.add(Game.toRank(Integer.parseInt(card)));
-        }
-
-        cbCardValues.getItems().addAll(cards);
-        cbCardValues.setValue(cbCardValues.getItems().get(0));
-    }
-
-    public void updateHand(Player user) {
-
-        // userHand = FXCollections.observableList(Arrays.asList(handArr));
-        // userHand.addListener();
-
-        // pVisual Card setup
-        for (int i = 0; i < user.getHand().size(); i++) {
-            ImageView userCard = new ImageView();
-
-            try {
-                userCard.setImage(new Image(new FileInputStream("card/" + user.getHand().get(i) + ".png")));
-            } catch (Exception ex) {
-                ex.printStackTrace();
-//				System.out.print("Image not Found");
-            }
-
-            pVisual.getChildren().add(userCard);
-
-            translate(13 * i - 55, 125, userCard);
-        }
-
-        String[] handArr = new String[user.getHand().size()];
-
-        for (int i = 0; i < user.getHand().size(); i++) {
-            handArr[i] = user.getHand().get(i).toString();
-        }
-
-        cbCardValues.getItems().addAll(new TreeSet<>(Arrays.asList(handArr)));
     }
 
     // The following methods allows client/server interaction
