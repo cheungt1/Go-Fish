@@ -303,11 +303,17 @@ public class GameServer extends Application {
             numPlayer++;
 
             // send list of names to client
-            StringBuilder names = new StringBuilder();
-            for (String name : players())
-                names.append(name).append(" ");
-            writeToAll(names.toString());
-//            System.out.println("names written");
+            for (PlayerHandler handler: players) {
+                if (handler != null) {
+                    StringBuilder names = new StringBuilder();
+                    for (String name : players()) {
+                        if (!name.equals(handler.player.getName())) {
+                            names.append(name).append(" ");
+                        }
+                    }
+                    writeString(handler.os, names.toString());
+                }
+            }
 
             // update nextFree
             int i = 0;
@@ -325,86 +331,98 @@ public class GameServer extends Application {
             try {
                 while (true) {
                     if (!gameStarted && !ready) {
-                        System.out.println("game has not started: " + numReady + "/" + numPlayer);
+                        System.out.printf("[%s] Game has not started: %d/%d\n", player, numReady, numPlayer);
                         is.readInt();
                         ready = true;
                         numReady++;
-                        System.out.println(player + " is ready: " + numReady + "/" + numPlayer);
+                        System.out.printf("[%s] is ready: %d/%d\n", player, numReady, numPlayer);
 
-                        if (numReady == numPlayer)
+                        if (numReady == numPlayer) {
                             writeToAll("start");
-                    } else if (numReady == numPlayer) {
-                        gameStarted = true;
-//                        ready = false;
-//                        numReady = 0;
-//                        writeToAll("start");
-                        System.out.println("game started: " + numReady + "/" + numPlayer);
+                            gameStarted = true;
+                            System.out.printf("[%s] Wrote start to all players\n", player);
+                        }
+                    } else if (gameStarted) {
+//                        gameStarted = true;
+                        System.out.printf("[%s] Game has started\n", player);
 
                         // send this player's hand
                         writeString(os, formatHand());
-                        System.out.println("hand sent");
+                        System.out.printf("[%s] Hand sent\n", player);
+                        Thread.sleep(100);
 
                         // get and send the name of the player of this turn
                         Player thisTurn = game.playerQueue().peekFirst();
+                        String thisTurnName = thisTurn.getName();
                         writeString(os, thisTurn.getName());
+                        System.out.printf("[%s] Player of this turn sent\n", player);
                         Platform.runLater(() -> ta.appendText(String.format("[Server] %s's turn\n",
-                                thisTurn.getName())));
-
-                        while (!thisTurn.equals(player)) {
-                            Thread.sleep(1);
-                        }
+                                thisTurnName)));
 
                         // if that player is this player
-                        if (!game.isEnded() && thisTurn.equals(player)) {
+                        if (!game.isEnded() && thisTurn == player) {
+                            System.out.printf("[%s] My turn\n", player);
+
                             // read target player and card from client
                             String[] target = is.readUTF().split(" ");
                             String targetName = target[0];
                             int targetCard = Game.toCard(target[1]);
+                            System.out.printf("[%s] Received target\n", player);
 
                             // request target player from client
-//                            writeString(os, "Choose a player from " + players());
-//                            String targetName = is.readUTF();
                             Player other = game.findPlayer(targetName);
-
-                            // request target card from client
-//                            writeString(os, "[Request for a card]");
-//                            int targetCard = Game.toCard(is.readUTF());
-
                             Platform.runLater(() -> ta.appendText(String.format("[Server] %s requests %d from %s\n",
-                                    thisTurn.getName(), targetCard, targetName)));
+                                    thisTurnName, targetCard, targetName)));
+
+                            System.out.printf("[%s] my hand: %s\n", player, player.getHand());
+                            System.out.printf("[%s] target hand: %s\n", player, other.getHand());
 
                             // check if target player has target card
                             int recv;
                             if ((recv = other.take(targetCard)) > 0) { // target player has target card
                                 // give this player those cards
                                 player.give(targetCard, recv);
+                                System.out.printf("[%s] Got %d %s's!\n", player, recv, targetCard);
 
                                 Platform.runLater(() -> ta.appendText(String.format("[Server] %s received %d %s's\n",
-                                        thisTurn.getName(), recv, targetCard)));
+                                        thisTurnName, recv, targetCard)));
                             } else { // target player does not have = target card
                                 // this player go fish
                                 player.goFish();
+                                System.out.printf("[%s] Go Fish!\n", player);
 
                                 // move this player to the back of the queue
                                 game.playerQueue().removeFirst();
                                 game.playerQueue().addLast(player);
 
                                 Platform.runLater(() -> ta.appendText(String.format("[Server] %s Go Fish!\n",
-                                        thisTurn.getName())));
-
-                                writeString(os, formatHand());
+                                        thisTurnName)));
                             }
 
                             // tell client the number of target cards this player got
                             writeInt(os, recv);
+                            System.out.printf("[%s] Recv sent: %d\n", player, recv);
+
+                            // send hand after go fish
+                            writeString(os, formatHand());
+                            System.out.printf("[%s] Hand sent after Go Fish\n", player);
+                        } else {
+                            while (thisTurn != player) {
+                                thisTurn = game.playerQueue().peekFirst();
+                                Thread.sleep(500);
+                            }
+
+                            writeInt(os, 1);
                         }
                     } else {
-                        Thread.sleep(1);
+                        Thread.sleep(100);
                     }
                 }
             } catch (SocketException | EOFException disconnect) { // when client is disconnected
                 try {
                     numPlayer--;
+                    if (ready)
+                        numReady--;
                     if (numPlayer == 0)
                         gameStarted = false;
 

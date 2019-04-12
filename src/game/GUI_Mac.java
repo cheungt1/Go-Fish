@@ -278,7 +278,7 @@ public class GUI_Mac extends Application {
                 writeString(os, String.format("%s %s", targetPlayer, targetCard));
 
                 // Update User's hand
-                updateHand_GUI();
+//                updateHand_GUI();
             });
 
             // Setting font sizes
@@ -439,7 +439,7 @@ public class GUI_Mac extends Application {
 
                 btConfirm.setOnAction(e -> {
                     // Checks if the user entered a valid name or not
-                    if (tfUserName.getText().compareTo("") != 0) {
+                    if (!tfUserName.getText().equals("")) {
                         // Sets the player name to what was entered
                         writeString(os, tfUserName.getText());
                         updateUserName(tfUserName.getText());
@@ -448,7 +448,6 @@ public class GUI_Mac extends Application {
                             is.readInt();
                         } catch (Exception ex) {
                             ex.printStackTrace();
-//							System.out.print("Forced to add this");
                         }
 
                         // Closes this stage and shows the stage for the actual game
@@ -464,7 +463,6 @@ public class GUI_Mac extends Application {
                 });
             } catch (Exception e) {
                 e.printStackTrace();
-//				System.out.println("Start up failed");
             }
         }).start();
 
@@ -480,9 +478,9 @@ public class GUI_Mac extends Application {
 
     public void updateInfo() {
         new Thread(() -> {
-            while (true) {
-                if (!gameStarted) {
-                    try {
+            try {
+                while (true) {
+                    if (!gameStarted) {
                         String msg = is.readUTF();
                         System.out.println("msg = " + msg);
                         if (msg.equals("start")) {
@@ -491,12 +489,8 @@ public class GUI_Mac extends Application {
 
                             Platform.runLater(() -> {
                                 updateOtherHands();
-                                updateHand_GUI();
                                 updateHand();
                             });
-
-//                            Platform.runLater(this::updateOtherHands);
-//                            Platform.runLater(this::updateHand_GUI);
                         } else {
                             System.out.println("game has not started");
                             playerList = msg;
@@ -505,10 +499,10 @@ public class GUI_Mac extends Application {
 
                             Platform.runLater(() -> updateGameName(userGroup));
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }).start();
     }
@@ -517,18 +511,27 @@ public class GUI_Mac extends Application {
         new Thread(() -> {
             try {
                 while (gameStarted) {
+                    System.out.println("new turn");
+                    Platform.runLater(this::updateHand_GUI);
+                    Thread.sleep(200);
+
                     String thisTurn = is.readUTF();
+                    System.out.println("This turn = " + thisTurn);
+                    System.out.println("my name = " + userName);
+
                     if (thisTurn.equals(userName)) {
+//                        System.out.println("my turn");
                         Platform.runLater(() -> btConfirmAction.setDisable(false));
 
                         int recv = is.readInt();
                         System.out.println("received " + recv + " cards");
 
                         Platform.runLater(this::updateHand_GUI);
+                        Thread.sleep(200);
                     } else {
+//                        System.out.println("not my turn");
                         Platform.runLater(() -> btConfirmAction.setDisable(true));
-                        while (!thisTurn.equals(userName))
-                            Thread.sleep(1);
+                        System.out.println("int = " + is.readInt()); // wait for signal from server
                     }
                 }
             } catch (Exception e) {
@@ -544,7 +547,7 @@ public class GUI_Mac extends Application {
     // Updates the default values of the cards with the user's true hand
 
     public void updateHand_GUI() {
-//        System.out.println("update my hand");
+        System.out.println("update my hand");
 
         String hand = "";
 
@@ -555,20 +558,15 @@ public class GUI_Mac extends Application {
             e.printStackTrace();
         }
 
-//        String[] oldHandArr = oldHand.split(" ");
         String[] handArr = hand.split(" ");
 
         pVisual.getChildren().removeAll(cardImages);
-
-        // userHand = FXCollections.observableList(Arrays.asList(handArr));
-        // userHand.addListener();
 
         // pVisual Card setup
         for (int i = 0; i < handArr.length; i++) {
             ImageView userCard = new ImageView();
 
             try {
-//                System.out.println(handArr[i]);
                 userCard.setImage(new Image(new FileInputStream("card/" + handArr[i] + ".png")));
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -586,14 +584,12 @@ public class GUI_Mac extends Application {
             cards.add(Game.toRank(Integer.parseInt(card)));
         }
 
+        cbCardValues.getItems().clear();
         cbCardValues.getItems().addAll(cards);
         cbCardValues.setValue(cbCardValues.getItems().get(0));
     }
+
     public void updateHand_GUI(Player user) {
-
-        // userHand = FXCollections.observableList(Arrays.asList(handArr));
-        // userHand.addListener();
-
         // pVisual Card setup
         for (int i = 0; i < user.getHand().size(); i++) {
             ImageView userCard = new ImageView();
@@ -602,7 +598,6 @@ public class GUI_Mac extends Application {
                 userCard.setImage(new Image(new FileInputStream("card/" + user.getHand().get(i) + ".png")));
             } catch (Exception ex) {
                 ex.printStackTrace();
-//				System.out.print("Image not Found");
             }
 
             pVisual.getChildren().add(userCard);
@@ -667,74 +662,27 @@ public class GUI_Mac extends Application {
         lblUserName.setText(newName);
     }
 
-    public void updateGameName(String[] uList) {
-        int mePos = -1;
+    public void updateGameName(String[] playerNames) {
+        rbPlayer2.setDisable(true);
+        rbPlayer3.setDisable(true);
+        rbPlayer4.setDisable(true);
 
-        /*
-         * finding the user's pos in the game non 0 base indexing
-         */
-        for (int i = 0; i < uList.length - 1; i++) {
-            if (uList[i] == null)
-                break;
-            if (uList[i].equals(userName))
-                mePos = i + 1;
+        if (playerNames.length >= 1) {
+            lblPlayer2Name.setText(playerNames[0]);
+            rbPlayer2.setText(playerNames[0]);
+            rbPlayer2.setDisable(false);
         }
 
-        switch (mePos) {
-            case 1:
-                lblPlayer2Name.setText(uList[1]);
-                rbPlayer2.setText(uList[1]);
+        if (playerNames.length >= 2) {
+            lblPlayer3Name.setText(playerNames[1]);
+            rbPlayer3.setText(playerNames[1]);
+            rbPlayer3.setDisable(false);
+        }
 
-                if (uList.length >= 3) {
-                    lblPlayer3Name.setText(uList[2]);
-                    rbPlayer3.setText(uList[2]);
-                }
-
-                if (uList.length == 4) {
-                    lblPlayer4Name.setText(uList[3]);
-                    rbPlayer4.setText(uList[3]);
-                }
-
-                break;
-            case 2:
-                if (uList.length >= 3) {
-                    lblPlayer2Name.setText(uList[2]);
-                    rbPlayer2.setText(uList[2]);
-                }
-
-                if (uList.length == 4) {
-                    lblPlayer3Name.setText(uList[3]);
-                    rbPlayer3.setText(uList[3]);
-                }
-
-                lblPlayer4Name.setText(uList[0]);
-                rbPlayer4.setText(uList[0]);
-
-                break;
-            case 3:
-                if (uList.length == 4) {
-                    lblPlayer2Name.setText(uList[3]);
-                    rbPlayer2.setText(uList[3]);
-                }
-
-                lblPlayer3Name.setText(uList[0]);
-                rbPlayer3.setText(uList[0]);
-
-                lblPlayer4Name.setText(uList[1]);
-                rbPlayer4.setText(uList[1]);
-
-                break;
-            case 4:
-                lblPlayer2Name.setText(uList[0]);
-                rbPlayer2.setText(uList[0]);
-
-                lblPlayer3Name.setText(uList[1]);
-                rbPlayer3.setText(uList[1]);
-
-                lblPlayer4Name.setText(uList[2]);
-                rbPlayer4.setText(uList[2]);
-
-                break;
+        if (playerNames.length >= 3) {
+            lblPlayer4Name.setText(playerNames[2]);
+            rbPlayer4.setText(playerNames[2]);
+            rbPlayer4.setDisable(false);
         }
     }
 
