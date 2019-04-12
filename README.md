@@ -75,10 +75,13 @@ By using Java, we will create two objects, Card and Player, that will keep track
   **Did**
     1. Implementing Server/Client into GUI
     2. Testing most cases of the Go-Fish game
+    3. Power Point presentation
     
   **Blocks/Challenges**
     1. Listener?
     2. Constant update of information
+    
+### Presentation Day (April 12)
 
 ## Team Members
 - Ruiming Zeng: GUI Design
