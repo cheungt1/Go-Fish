@@ -34,7 +34,7 @@ By using Java, we will create two objects, Card and Player, that will keep track
   1. Go to the Git file
   2. Clone URL
   ### Eclipse
-  3.Import project through Git
+  3. Import project through Git
   4. Clone URL
   5. Follow the path until project is imported
 ### Run
