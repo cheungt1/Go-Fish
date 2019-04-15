@@ -31,7 +31,12 @@ By using Java, we will create two objects, Card and Player, that will keep track
   
 ## Getting Started
 ### Install
-  1.
+  1. Go to the Git file
+  2. Clone URL
+  ### Eclipse
+  3.Import project through Git
+  4. Clone URL
+  5. Follow the path until project is imported
 ### Run
   1. Adjust the server to a local IP address
   2. Run the server class 
