@@ -44,6 +44,15 @@ By using Java, we will create two objects, Card and Player, that will keep track
   4. Select "Ready" when all players are in the pseudo-lobby
   5. Enjoy the game 
 
+### Features
+  * On the GUI
+    1. Pseudo-table from a wooden frame and a green backdrop
+    2. All player buttons are listed, just invistible for clicking
+    3. Only way to close out the game is through "Leave game" button
+  * Game 
+    1. Rules slightly deviates from the actual game
+      - Create a more strategic game style
+
 ## Demo Video
   
 ## Team Members
