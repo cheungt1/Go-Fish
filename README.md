@@ -58,4 +58,4 @@ By using Java, we will create two objects, Card and Player, that will keep track
 ## Team Members
 - Ruiming Zeng: GUI Design
 - Z Yang: Code Clean up/Back-End Coding
-- Martin Cheung: Back-End Coding
+- Martin Cheung: Back-End Coding/Documents Creator
