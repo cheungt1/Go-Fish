@@ -2,7 +2,8 @@ package game;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -32,8 +33,8 @@ public class GUI_Mac extends Application {
     DataOutputStream os;
     DataInputStream is;
 
-    ObservableList<String> userHand;
     String playerList;
+    IntegerProperty numPlayers = new SimpleIntegerProperty(1);
 
     public GUI_Mac() {
         try {
@@ -104,7 +105,7 @@ public class GUI_Mac extends Application {
             // Label initialization
             Label lblPlayerSection = new Label("Available Players");
             Label lblCardSection = new Label("Select a Card Value");
-            Label lblRecentAction = new Label("Test Text log");
+            Label lblRecentAction = new Label();
 
             // Button initialization
             btConfirmAction = new Button("Ask for that card");
@@ -112,7 +113,7 @@ public class GUI_Mac extends Application {
             Button btReady = new Button("Ready!");
 
             // Stage modifications
-            playingStage.initStyle(StageStyle.UNDECORATED);
+            playingStage.initStyle(StageStyle.TRANSPARENT);
 
             // Sets up a toggle group so only one option can be true out of the three
             rbPlayer2.setToggleGroup(rbPlayers);
@@ -170,20 +171,17 @@ public class GUI_Mac extends Application {
 
             cbCardValues.setOnAction(e -> {
                 try {
+                    System.out.println("NullPointer = " + (cbCardValues == null));
                     switch (cbCardValues.getValue()) {
-                        case "Ace":
-                            imgCard.setImage(new Image(
-                                    new FileInputStream("card/1.png")));
-                            break;
-                        case "Jack":
+                        case "J":
                             imgCard.setImage(new Image(
                                     new FileInputStream("card/11.png")));
                             break;
-                        case "Queen":
+                        case "Q":
                             imgCard.setImage(new Image(
                                     new FileInputStream("card/12.png")));
                             break;
-                        case "King":
+                        case "K":
                             imgCard.setImage(new Image(
                                     new FileInputStream("card/13.png")));
                             break;
@@ -348,17 +346,21 @@ public class GUI_Mac extends Application {
             lblPlayer2Name.setOnMousePressed(e -> lblPlayer2Name.setRotate(0));
             lblPlayer2Name.setOnMouseReleased(e -> lblPlayer2Name.setRotate(90));
 
+//            btReady.setDisable(true);
+
             btReady.setOnAction(event -> {
                 writeInt(os, 1);
-
-                /*if (gameStarted) {
-                    updateOtherHands();
-                }*/
 
                 btReady.setVisible(false);
                 btReady.setDisable(true);
             });
 
+            numPlayers.addListener(listener -> {
+                if (numPlayers.get() < 2)
+                    btReady.setDisable(true);
+                else
+                    btReady.setDisable(false);
+            });
 
             // pVisual background set-up
             background.setImage(new Image(new FileInputStream("GUIGraphic/tableTexture.jpg")));
@@ -496,6 +498,7 @@ public class GUI_Mac extends Application {
                             playerList = msg;
                             System.out.println("players = " + playerList);
                             String[] userGroup = playerList.split(" ");
+                            numPlayers.set(userGroup.length);
 
                             Platform.runLater(() -> updateGameName(userGroup));
                         }
@@ -561,6 +564,7 @@ public class GUI_Mac extends Application {
         String[] handArr = hand.split(" ");
 
         pVisual.getChildren().removeAll(cardImages);
+        cardImages.clear();
 
         // pVisual Card setup
         for (int i = 0; i < handArr.length; i++) {

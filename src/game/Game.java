@@ -174,7 +174,6 @@ public class Game implements Serializable {
 	}
 
 	public int draw() {
-	    // TODO: infinite deck for testing
 	    if (deckPos >= 52)
 	        deckPos = 0;
 
