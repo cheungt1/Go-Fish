@@ -54,6 +54,7 @@ By using Java, we will create two objects, Card and Player, that will keep track
       - Create a more strategic game style
 
 ## Demo Video
+  https://youtu.be/uW_RY2lr38A
   
 ## Team Members
 - Ruiming Zeng: GUI Design
