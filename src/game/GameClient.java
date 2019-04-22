@@ -85,6 +85,7 @@ public class GameClient extends Application {
     Label lblUserName = new Label(userName); // Used to display the user's name
 
     Button btConfirmAction;
+    Button btReady;
 
     static int playerScore = 0;
     static Label lblPlayerScore = new Label("Your Score: " + playerScore);
@@ -111,7 +112,7 @@ public class GameClient extends Application {
             // Button initialization
             btConfirmAction = new Button("Ask for that card");
             Button btQuit = new Button("Leave Game");
-            Button btReady = new Button("Ready!");
+            btReady = new Button("Ready!");
 
             // Stage modifications
             playingStage.initStyle(StageStyle.UNDECORATED);
@@ -490,9 +491,14 @@ public class GameClient extends Application {
                             System.out.println("game has not started");
                             playerList = msg;
                             System.out.println("players = " + playerList);
-                            String[] userGroup = playerList.split(" ");
+                            String[] othersName = playerList.split(" ");
 
-                            Platform.runLater(() -> GameClient.this.updateGameName(userGroup));
+                            if (othersName.length == 0)
+                                btReady.setDisable(true);
+                            else
+                                btReady.setDisable(false);
+
+                            Platform.runLater(() -> GameClient.this.updateGameName(othersName));
                         }
                     } else {
                         Thread.sleep(1000);
