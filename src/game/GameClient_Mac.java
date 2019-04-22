@@ -22,7 +22,6 @@ import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.TreeSet;
 
 import static game.Util.writeInt;
@@ -269,17 +268,9 @@ public class GameClient_Mac extends Application {
             });
 
             btConfirmAction.setOnAction(e -> {
-                /*for (int i = 0; i < 4; i++) {
-                    for (int j = 0; j < 5; j++) {
-                        pVisual.getChildren().remove(8);
-                    }
-                }*/
                 String targetPlayer = ((RadioButton) rbPlayers.getSelectedToggle()).getText();
                 String targetCard = cbCardValues.getValue();
                 writeString(os, String.format("%s %s", targetPlayer, targetCard));
-
-                // Update User's hand
-//                updateHand_GUI();
             });
 
             // Setting font sizes
@@ -587,35 +578,10 @@ public class GameClient_Mac extends Application {
         }
 
         cbCardValues.getSelectionModel().clearSelection();
-//        cbCardValues.getItems().clear();
-        cbCardValues.getItems().addAll(cards);
+        cbCardValues.getItems().setAll(cards);
+//        cbCardValues.getItems().addAll(cards);
 //        cbCardValues.setValue(cbCardValues.getItems().get(0));
         cbCardValues.getSelectionModel().selectFirst();
-    }
-
-    public void updateHand_GUI(Player user) {
-        // pVisual Card setup
-        for (int i = 0; i < user.getHand().size(); i++) {
-            ImageView userCard = new ImageView();
-
-            try {
-                userCard.setImage(new Image(new FileInputStream("card/" + user.getHand().get(i) + ".png")));
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-
-            pVisual.getChildren().add(userCard);
-
-            translate(13 * i - 55, 125, userCard);
-        }
-
-        String[] handArr = new String[user.getHand().size()];
-
-        for (int i = 0; i < user.getHand().size(); i++) {
-            handArr[i] = user.getHand().get(i).toString();
-        }
-
-        cbCardValues.getItems().addAll(new TreeSet<>(Arrays.asList(handArr)));
     }
 
     public void updateOtherHands() {

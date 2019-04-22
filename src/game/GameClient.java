@@ -581,9 +581,11 @@ public class GameClient extends Application {
             cards.add(Game.toRank(Integer.parseInt(card)));
         }
 
-        cbCardValues.getItems().clear();
-        cbCardValues.getItems().addAll(cards);
-        cbCardValues.setValue(cbCardValues.getItems().get(0));
+        cbCardValues.getSelectionModel().clearSelection();
+        cbCardValues.getItems().setAll(cards);
+//        cbCardValues.getItems().addAll(cards);
+//        cbCardValues.setValue(cbCardValues.getItems().get(0));
+        cbCardValues.getSelectionModel().selectFirst();
     }
 
     public void updateHand_GUI(Player user) {

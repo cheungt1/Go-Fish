@@ -100,9 +100,23 @@ public class GameServer extends Application {
         tfCommand.setOnAction(event -> {
             String command = tfCommand.getText();
             if (command.equals("reset")) {
+                // stop accepting player thread
                 accept.interrupt();
 
+                // close all i/o streams of current players
+                for (PlayerHandler handler : players) {
+                    try {
+                        handler.is.close();
+                        handler.os.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                // re-initialize
                 initialize();
+
+                // make sure server socket is closed
                 while (serverSocket.isClosed()) {
                     try {
                         Thread.sleep(1);
@@ -111,12 +125,15 @@ public class GameServer extends Application {
                     }
                 }
 
+                // restart accepting player thread
                 accept = new Thread(new AcceptPlayer());
                 accept.start();
                 Platform.runLater(() -> ta.appendText("[Server] has been reset"));
             } else if (command.equals("players")) {
                 Platform.runLater(() -> ta.appendText("[Server] " + players()));
             }
+
+            tfCommand.clear();
         });
 
         // stack pane to hold command text field
@@ -283,6 +300,8 @@ public class GameServer extends Application {
 
         // the player for this handler
         Player player;
+
+        // whether or not this player is ready to start
         boolean ready;
 
         // i/o streams
@@ -475,6 +494,11 @@ public class GameServer extends Application {
             return hand.toString();
         }
 
+        /**
+         * Write a message to all PlayerHandlers in this current server.
+         *
+         * @param msg the msg
+         */
         private void writeToAll(String msg) {
             for (PlayerHandler handler : players) {
                 if (handler != null) {
