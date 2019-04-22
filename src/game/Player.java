@@ -1,11 +1,8 @@
-    
+
 package game;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.ListIterator;
+import java.util.*;
 
 /**
  * This is a player class. It is to create an object for all the
@@ -32,22 +29,53 @@ public class Player implements Serializable {
     public Player(Game game, String name) {
         this.game = game;
         this.name = name;
-        this.hand = game.createHand();
+        this.hand = new LinkedList<>();
+//        this.hand = game.createHand();
     }
 
+    /**
+     * Give this player a card.
+     *
+     * @param card the card value
+     * @throws IllegalArgumentException for invalid card value
+     */
     public void give(int card) {
         if (card < 0)
             throw new IllegalArgumentException("Invalid Card: " + card);
-        
+
         hand.add(card);
         updateHand();
     }
 
+    /**
+     * Give this player a specified number of certain card.
+     *
+     * @param card the card value
+     * @param num  the number of card
+     */
     public void give(int card, int num) {
         for (; num > 0; num--)
             give(card);
     }
 
+    /**
+     * Give this player a list of cards.
+     *
+     * @param cards the list of cards
+     */
+    public void give(Collection<Integer> cards) {
+        for (int card : cards) {
+            give(card);
+        }
+    }
+
+    /**
+     * Take a card from this player.
+     *
+     * @param card the card value
+     * @return the card taken
+     * @throws IllegalArgumentException for invalid card value
+     */
     public int take(int card) {
         if (card < 0)
             throw new IllegalArgumentException("Invalid Card: " + card);
@@ -63,7 +91,7 @@ public class Player implements Serializable {
      * Check if this player has the specified card in hand.
      *
      * @param card the number value of the card asked
-     * @return the number of card this player has in hand, 0 if none
+     * @return the number of card this player has in hand; 0 if none
      */
     public int hasCard(int card) {
         Iterator<Integer> itr = hand.iterator();
@@ -118,7 +146,7 @@ public class Player implements Serializable {
             if (current == next) { // if current element is the same as next
                 // increment count
                 if (++count == 4) { // four-of-a-kind is found
-                	game.matched(); // signal there is a match to the game class
+                    matched(); // signal there is a match to the game class
                     // remove 4 elements
                     for (int i = 0; i < 4; i++) {
                         itr.previous();
@@ -131,30 +159,33 @@ public class Player implements Serializable {
 
             current = next; // update current
         }
-        
+
         setActive(hand.size() != 0); // see if the player still has any cards
     }
-    
+
+    /**
+     * Called when there is 4-of-a-kind by a player.
+     */
+    public void matched() {
+        score++;
+    }
+
     /**
      * Determines if a player has cards or not
      */
     public void setActive(boolean active) {
         this.active = active;
-
-    	// if the player is not active, remove from order queue
-    	/*if (!active) {
-    		game.removePlayer(this);
-    	}*/
     }
 
     /**
      * A getter for whether or not this player is active
+     *
      * @return a boolean value of active or not
      */
     public boolean isActive() {
-    	return active;
+        return active;
     }
-    
+
     /**
      * A getter for the hand
      *
@@ -182,20 +213,32 @@ public class Player implements Serializable {
         return name;
     }
 
+    /**
+     * A getter for this player's associated game.
+     *
+     * @return the game this player is in
+     */
     public Game getGame() {
         return game;
     }
 
     /**
-     * The toString of the player class would display the 
+     * The toString of the player class would display the
      * number of points this player has.
+     *
      * @return return the toString of this player
      */
-    @Override 
+    @Override
     public String toString() {
-    	return name;
+        return name;
     }
 
+    /**
+     * Checks whether the given object is equal to this player.
+     *
+     * @param obj the object
+     * @return true if obj = this player; false otherwise
+     */
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof Player) {

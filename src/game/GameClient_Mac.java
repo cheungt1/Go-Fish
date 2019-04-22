@@ -28,7 +28,7 @@ import java.util.TreeSet;
 import static game.Util.writeInt;
 import static game.Util.writeString;
 
-public class GUI_Mac extends Application {
+public class GameClient_Mac extends Application {
     Socket socket;
     DataOutputStream os;
     DataInputStream is;
@@ -36,7 +36,7 @@ public class GUI_Mac extends Application {
     String playerList;
     IntegerProperty numPlayers = new SimpleIntegerProperty(1);
 
-    public GUI_Mac() {
+    public GameClient_Mac() {
         try {
             socket = new Socket("localhost", 8000);
             os = new DataOutputStream(socket.getOutputStream());
@@ -60,7 +60,7 @@ public class GUI_Mac extends Application {
     Label lblPlayer3Name = new Label("Player 3");
     Label lblPlayer4Name = new Label("Player 4");
 
-    // Public GUI Components to send to server/client
+    // Public GameClient Components to send to server/client
     static TextField tfUserName = new TextField();
 
     static RadioButton rbPlayer2 = new RadioButton("Player 2");
@@ -71,7 +71,7 @@ public class GUI_Mac extends Application {
 
     static ComboBox<String> cbCardValues = new ComboBox<>();
 
-    // Creates Font objects to reference throughout formatting GUI components
+    // Creates Font objects to reference throughout formatting GameClient components
     Font f16 = new Font("System", 16);
     Font f18 = new Font("System", 18);
     Font f20 = new Font("System", 20);
@@ -171,8 +171,10 @@ public class GUI_Mac extends Application {
 
             cbCardValues.setOnAction(e -> {
                 try {
-                    System.out.println("NullPointer = " + (cbCardValues == null));
                     switch (cbCardValues.getValue()) {
+                        case "A":
+                            imgCard.setImage(new Image(
+                                    new FileInputStream("card/1.png")));
                         case "J":
                             imgCard.setImage(new Image(
                                     new FileInputStream("card/11.png")));
@@ -189,9 +191,10 @@ public class GUI_Mac extends Application {
                             imgCard.setImage(new Image(new FileInputStream("card/" + cbCardValues.getValue() + ".png")));
                             break;
                     }
+                } catch (NullPointerException npe) {
+                    // ignored
                 } catch (Exception ex) {
                     ex.printStackTrace();
-//					System.out.print("Image not Found");
                 }
             });
 
@@ -226,7 +229,7 @@ public class GUI_Mac extends Application {
                 // Creates actions for the buttons
                 btYes.setOnAction(f -> {
                     /*
-                     * Remove when multiple clients can connect if(server.getGame().isEnded()) { try
+                     * Remove when multiple clients can connect if(server.getGame().isStarted()) { try
                      * { is.close(); os.close(); } catch(Exception ex) {
                      * System.out.println("Cannot close server correctly"); }
                      *
@@ -431,14 +434,6 @@ public class GUI_Mac extends Application {
 
         new Thread(() -> {
             try {
-
-                // socket = new Socket("10.200.117.230", 8000);
-
-                // String fromServer = is.readUTF();
-
-                // lblMessage1.setText(fromServer.substring(0, 29));
-                // lblMessage2.setText(fromServer.substring(29));
-
                 btConfirm.setOnAction(e -> {
                     // Checks if the user entered a valid name or not
                     if (!tfUserName.getText().equals("")) {
@@ -470,7 +465,7 @@ public class GUI_Mac extends Application {
 
     }
 
-    // Created to translate a GUI component in the x and y axis at the same time
+    // Created to translate a GameClient component in the x and y axis at the same time
     public void translate(double x, double y, Node node) {
         node.setTranslateX(x);
         node.setTranslateY(y);
@@ -501,7 +496,10 @@ public class GUI_Mac extends Application {
                             numPlayers.set(userGroup.length);
 
                             Platform.runLater(() -> updateGameName(userGroup));
+                            Thread.sleep(200);
                         }
+                    } else {
+                        Thread.sleep(1000);
                     }
                 }
             } catch (Exception e) {
@@ -588,9 +586,11 @@ public class GUI_Mac extends Application {
             cards.add(Game.toRank(Integer.parseInt(card)));
         }
 
-        cbCardValues.getItems().clear();
+        cbCardValues.getSelectionModel().clearSelection();
+//        cbCardValues.getItems().clear();
         cbCardValues.getItems().addAll(cards);
-        cbCardValues.setValue(cbCardValues.getItems().get(0));
+//        cbCardValues.setValue(cbCardValues.getItems().get(0));
+        cbCardValues.getSelectionModel().selectFirst();
     }
 
     public void updateHand_GUI(Player user) {

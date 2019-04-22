@@ -1,4 +1,4 @@
-    
+
 package game;
 
 import java.io.DataInputStream;

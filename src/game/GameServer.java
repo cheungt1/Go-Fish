@@ -59,7 +59,6 @@ public class GameServer extends Application {
     private static Thread accept;
 
     // whether or not game has started
-    private static boolean gameStarted;
     private static int numReady;
 
     /**
@@ -146,6 +145,9 @@ public class GameServer extends Application {
         accept.start();
     }
 
+    /**
+     * A Runnable class for accepting players with a thread.
+     */
     private class AcceptPlayer implements Runnable {
 
         @Override
@@ -155,7 +157,7 @@ public class GameServer extends Application {
                 Platform.runLater(() ->
                         ta.appendText(String.format("[Server] Waiting for connection at port %d ...\n", port)));
 
-                while (!gameStarted) {
+                while (!game.isStarted()) {
                     // accept player
                     Socket playerSocket = serverSocket.accept();
 
@@ -177,6 +179,8 @@ public class GameServer extends Application {
 
                     // start a new player handler for the new player
                     new Thread(new PlayerHandler(newPlayer, is, os)).start();
+
+                    Thread.sleep(100);
                 }
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
@@ -211,7 +215,6 @@ public class GameServer extends Application {
         nextFree = 0;
 
         // game has not started
-        gameStarted = false;
         numReady = 0;
     }
 
@@ -293,7 +296,7 @@ public class GameServer extends Application {
          * @param is     the input stream for the player
          * @param os     the output stream for the player
          */
-        PlayerHandler(Player player, DataInputStream is, DataOutputStream os) {
+        PlayerHandler(Player player, DataInputStream is, DataOutputStream os) throws InterruptedException {
             this.player = player;
             this.is = is;
             this.os = os;
@@ -303,7 +306,7 @@ public class GameServer extends Application {
             numPlayer++;
 
             // send list of names to client
-            for (PlayerHandler handler: players) {
+            for (PlayerHandler handler : players) {
                 if (handler != null) {
                     StringBuilder names = new StringBuilder();
                     for (String name : players()) {
@@ -312,6 +315,7 @@ public class GameServer extends Application {
                         }
                     }
                     writeString(handler.os, names.toString());
+                    Thread.sleep(100);
                 }
             }
 
@@ -329,38 +333,42 @@ public class GameServer extends Application {
         @Override
         public void run() {
             try {
-                while (true) {
-                    if (!gameStarted && !ready) {
+                while (!Thread.interrupted()) {
+                    if (!game.isStarted() && !ready) {
                         System.out.printf("[%s] Game has not started: %d/%d\n", player, numReady, numPlayer);
                         is.readInt();
                         ready = true;
                         numReady++;
-                        System.out.printf("[%s] is ready: %d/%d\n", player, numReady, numPlayer);
+//                        System.out.printf("[%s] is ready: %d/%d\n", player, numReady, numPlayer);
+                        Platform.runLater(() -> ta.appendText(String.format("[Server] %s is ready: %d/%d\n",
+                                player, numReady, numPlayer)));
 
                         if (numReady == numPlayer) {
                             writeToAll("start");
-                            gameStarted = true;
+                            game.start();
+                            Thread.sleep(100);
                             System.out.printf("[%s] Wrote start to all players\n", player);
                         }
-                    } else if (gameStarted) {
-//                        gameStarted = true;
-                        System.out.printf("[%s] Game has started\n", player);
+                    } else if (game.isStarted()) {
+//                        System.out.printf("[%s] Game has started\n", player);
+                        Platform.runLater(() -> ta.appendText("[Server] Game has started\n"));
 
                         // send this player's hand
                         writeString(os, formatHand());
-                        System.out.printf("[%s] Hand sent\n", player);
                         Thread.sleep(100);
+                        System.out.printf("[%s] Hand sent\n", player);
 
                         // get and send the name of the player of this turn
                         Player thisTurn = game.playerQueue().peekFirst();
                         String thisTurnName = thisTurn.getName();
                         writeString(os, thisTurn.getName());
+                        Thread.sleep(100);
                         System.out.printf("[%s] Player of this turn sent\n", player);
                         Platform.runLater(() -> ta.appendText(String.format("[Server] %s's turn\n",
                                 thisTurnName)));
 
                         // if that player is this player
-                        if (!game.isEnded() && thisTurn == player) {
+                        if (thisTurn == player) {
                             System.out.printf("[%s] My turn\n", player);
 
                             // read target player and card from client
@@ -401,10 +409,12 @@ public class GameServer extends Application {
 
                             // tell client the number of target cards this player got
                             writeInt(os, recv);
+                            Thread.sleep(100);
                             System.out.printf("[%s] Recv sent: %d\n", player, recv);
 
                             // send hand after go fish
                             writeString(os, formatHand());
+                            Thread.sleep(100);
                             System.out.printf("[%s] Hand sent after Go Fish\n", player);
                         } else {
                             while (thisTurn != player) {
@@ -413,9 +423,10 @@ public class GameServer extends Application {
                             }
 
                             writeInt(os, 1);
+                            Thread.sleep(100);
                         }
                     } else {
-                        Thread.sleep(100);
+                        Thread.sleep(500);
                     }
                 }
             } catch (SocketException | EOFException disconnect) { // when client is disconnected
@@ -423,8 +434,6 @@ public class GameServer extends Application {
                     numPlayer--;
                     if (ready)
                         numReady--;
-                    if (numPlayer == 0)
-                        gameStarted = false;
 
                     // remove this player from the queue
                     game.playerQueue().remove(player);
