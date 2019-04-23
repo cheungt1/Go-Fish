@@ -61,6 +61,9 @@ public class GameServer extends Application {
     // whether or not game has started
     private static int numReady;
 
+    // whether or not this turn is finished by the current player
+    private static boolean turnFinished;
+
     /**
      * Execute to start the server and run the UI.
      *
@@ -80,6 +83,7 @@ public class GameServer extends Application {
         // initialize class variables
         initialize();
         ta.appendText("[Server] Initialized\n");
+        ta.setEditable(false);
 
         // create a stack pane to hold the text area
         StackPane main = new StackPane(ta);
@@ -367,10 +371,10 @@ public class GameServer extends Application {
                             game.start();
                             Thread.sleep(100);
                             System.out.printf("[%s] Wrote start to all players\n", player);
+                            Platform.runLater(() -> ta.appendText("[Server] Game has started\n"));
                         }
                     } else if (game.isStarted()) {
 //                        System.out.printf("[%s] Game has started\n", player);
-                        Platform.runLater(() -> ta.appendText("[Server] Game has started\n"));
 
                         // send this player's hand
                         writeString(os, formatHand());
@@ -388,6 +392,9 @@ public class GameServer extends Application {
 
                         // if that player is this player
                         if (thisTurn == player) {
+                            turnFinished = false;
+//                            GameServer.this.notifyAll();
+
                             System.out.printf("[%s] My turn\n", player);
 
                             // read target player and card from client
@@ -413,7 +420,7 @@ public class GameServer extends Application {
 
                                 Platform.runLater(() -> ta.appendText(String.format("[Server] %s received %d %s's\n",
                                         thisTurnName, recv, targetCard)));
-                            } else { // target player does not have = target card
+                            } else { // target player does not have target card
                                 // this player go fish
                                 player.goFish();
                                 System.out.printf("[%s] Go Fish!\n", player);
@@ -428,17 +435,13 @@ public class GameServer extends Application {
 
                             // tell client the number of target cards this player got
                             writeInt(os, recv);
-                            Thread.sleep(100);
+                            Thread.sleep(200);
                             System.out.printf("[%s] Recv sent: %d\n", player, recv);
 
-                            // send hand after go fish
-                            writeString(os, formatHand());
-                            Thread.sleep(100);
-                            System.out.printf("[%s] Hand sent after Go Fish\n", player);
+                            turnFinished = true;
                         } else {
-                            while (thisTurn != player) {
-                                thisTurn = game.playerQueue().peekFirst();
-                                Thread.sleep(500);
+                            while (!turnFinished) {
+                                Thread.sleep(200);
                             }
 
                             writeInt(os, 1);

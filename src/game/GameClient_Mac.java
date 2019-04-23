@@ -487,7 +487,8 @@ public class GameClient_Mac extends Application {
                             String[] othersName = playerList.split(" ");
                             numPlayers.set(othersName.length);
 
-                            if (othersName.length == 0)
+                            System.out.println("# players = " + othersName.length);
+                            if (playerList.equals(""))
                                 btReady.setDisable(true);
                             else
                                 btReady.setDisable(false);
@@ -524,13 +525,14 @@ public class GameClient_Mac extends Application {
                         int recv = is.readInt();
                         System.out.println("received " + recv + " cards");
 
-                        Platform.runLater(this::updateHand_GUI);
-                        Thread.sleep(200);
+//                        Platform.runLater(this::updateHand_GUI);
                     } else {
-//                        System.out.println("not my turn");
+                        System.out.println("not my turn");
                         Platform.runLater(() -> btConfirmAction.setDisable(true));
                         System.out.println("int = " + is.readInt()); // wait for signal from server
                     }
+
+                    Thread.sleep(200);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
