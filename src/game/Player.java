@@ -76,15 +76,41 @@ public class Player implements Serializable {
      * @return the card taken
      * @throws IllegalArgumentException for invalid card value
      */
-    public int take(int card) {
+    public boolean take(int card) {
         if (card < 0)
             throw new IllegalArgumentException("Invalid Card: " + card);
 
-        int n = hasCard(card);
-        if (n > 0)
-            hand.removeIf(i -> i.equals(card));
+        ListIterator<Integer> itr = hand.listIterator();
+        while (itr.hasNext()) {
+            int c = itr.next();
+            if (c == card) {
+                itr.remove();
+                return true;
+            }
+        }
 
-        return n;
+        return false;
+    }
+
+    /**
+     * Take all cards of the given rank from this player.
+     *
+     * @param rank the card rank
+     * @return number of cards taken
+     */
+    public int take(String rank) {
+        ListIterator<Integer> itr = hand.listIterator();
+        int removed = 0;
+
+        while (itr.hasNext()) {
+            int card = itr.next();
+            if (Game.toRank(card).equals(rank)) {
+                itr.remove();
+                removed++;
+            }
+        }
+
+        return removed;
     }
 
     /**
@@ -113,7 +139,6 @@ public class Player implements Serializable {
     public boolean goFish() {
         if (game.cardsLeft() != 0) {
             this.hand.addLast(game.draw());
-//            System.out.println("Go Fish! -> " + hand);
             updateHand();
             return true;
         }
@@ -128,7 +153,7 @@ public class Player implements Serializable {
      */
     public void updateHand() {
         // sort the hand in order to remove consecutive elements
-        Collections.sort(hand);
+        hand.sort(Game.IGNORE_SUIT);
 
         // if player has less than 4 cards in hand, skip
         if (hand.size() < 4)

@@ -2,8 +2,6 @@ package game;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -33,7 +31,6 @@ public class GameClient_Mac extends Application {
     DataInputStream is;
 
     String playerList;
-    IntegerProperty numPlayers = new SimpleIntegerProperty(1);
 
     public GameClient_Mac() {
         try {
@@ -53,7 +50,7 @@ public class GameClient_Mac extends Application {
     BorderPane overallPane = new BorderPane();
     StackPane pInteraction = new StackPane();
     StackPane pVisual = new StackPane();
-    StackPane pTextLog = new StackPane();
+//    StackPane pTextLog = new StackPane();
 
     Label lblPlayer2Name = new Label("Player 2");
     Label lblPlayer3Name = new Label("Player 3");
@@ -105,7 +102,7 @@ public class GameClient_Mac extends Application {
             // Label initialization
             Label lblPlayerSection = new Label("Available Players");
             Label lblCardSection = new Label("Select a Card Value");
-            Label lblRecentAction = new Label();
+//            Label lblRecentAction = new Label();
 
             // Button initialization
             btConfirmAction = new Button("Ask for that card");
@@ -284,7 +281,7 @@ public class GameClient_Mac extends Application {
             btConfirmAction.setFont(f18);
             btQuit.setFont(f18);
             btReady.setFont(f18);
-            lblRecentAction.setFont(f16);
+//            lblRecentAction.setFont(f16);
             lblUserName.setFont(f16);
             lblPlayer2Name.setFont(f16);
             lblPlayer3Name.setFont(f16);
@@ -295,9 +292,9 @@ public class GameClient_Mac extends Application {
                     rbPlayer3, rbPlayer4, cbCardValues, btConfirmAction, btQuit);
             pVisual.getChildren().addAll(background, imgCardBack1, imgCardBack2, imgCardBack3, btReady, lblUserName,
                     lblPlayer2Name, lblPlayer3Name, lblPlayer4Name);
-            pTextLog.getChildren().addAll(lblRecentAction);
+//            pTextLog.getChildren().addAll(lblRecentAction);
 
-            overallPane.setTop(pTextLog);
+//            overallPane.setTop(pTextLog);
             overallPane.setCenter(pVisual);
             overallPane.setRight(pInteraction);
 
@@ -350,13 +347,6 @@ public class GameClient_Mac extends Application {
                 btReady.setDisable(true);
             });
 
-            numPlayers.addListener(listener -> {
-                if (numPlayers.get() < 2)
-                    btReady.setDisable(true);
-                else
-                    btReady.setDisable(false);
-            });
-
             // pVisual background set-up
             background.setImage(new Image(new FileInputStream("GUIGraphic/tableTexture.jpg")));
             translate(-20, 0, background);
@@ -371,7 +361,7 @@ public class GameClient_Mac extends Application {
                     .setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
 
             // pTextLog alignment
-            translate(-465, 0, lblRecentAction);
+//            translate(-465, 0, lblRecentAction);
 
             // Create Scene and set-up stage
             Scene scene = new Scene(overallPane, 1024, 532);
@@ -485,7 +475,6 @@ public class GameClient_Mac extends Application {
                             playerList = msg;
                             System.out.println("players = " + playerList);
                             String[] othersName = playerList.split(" ");
-                            numPlayers.set(othersName.length);
 
                             System.out.println("# players = " + othersName.length);
                             if (playerList.equals(""))

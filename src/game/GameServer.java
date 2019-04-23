@@ -357,7 +357,7 @@ public class GameServer extends Application {
         public void run() {
             try {
                 while (!Thread.interrupted()) {
-                    if (!game.isStarted() && !ready) {
+                    if (!game.isStarted() && !ready) { // waiting for this player to be ready
                         System.out.printf("[%s] Game has not started: %d/%d\n", player, numReady, numPlayer);
                         is.readInt();
                         ready = true;
@@ -373,9 +373,7 @@ public class GameServer extends Application {
                             System.out.printf("[%s] Wrote start to all players\n", player);
                             Platform.runLater(() -> ta.appendText("[Server] Game has started\n"));
                         }
-                    } else if (game.isStarted()) {
-//                        System.out.printf("[%s] Game has started\n", player);
-
+                    } else if (game.isStarted()) { // game is started
                         // send this player's hand
                         writeString(os, formatHand());
                         Thread.sleep(100);
@@ -392,20 +390,21 @@ public class GameServer extends Application {
 
                         // if that player is this player
                         if (thisTurn == player) {
+                            // this turn is not finished
                             turnFinished = false;
-//                            GameServer.this.notifyAll();
 
                             System.out.printf("[%s] My turn\n", player);
 
                             // read target player and card from client
                             String[] target = is.readUTF().split(" ");
                             String targetName = target[0];
-                            int targetCard = Game.toCard(target[1]);
+//                            int targetCard = Game.toCard(target[1]);
+                            String targetCard = target[1];
                             System.out.printf("[%s] Received target\n", player);
 
                             // request target player from client
                             Player other = game.findPlayer(targetName);
-                            Platform.runLater(() -> ta.appendText(String.format("[Server] %s requests %d from %s\n",
+                            Platform.runLater(() -> ta.appendText(String.format("[Server] %s requests %s from %s\n",
                                     thisTurnName, targetCard, targetName)));
 
                             System.out.printf("[%s] my hand: %s\n", player, player.getHand());
@@ -415,7 +414,7 @@ public class GameServer extends Application {
                             int recv;
                             if ((recv = other.take(targetCard)) > 0) { // target player has target card
                                 // give this player those cards
-                                player.give(targetCard, recv);
+                                player.give(Game.toCard(targetCard), recv);
                                 System.out.printf("[%s] Got %d %s's!\n", player, recv, targetCard);
 
                                 Platform.runLater(() -> ta.appendText(String.format("[Server] %s received %d %s's\n",
@@ -435,9 +434,9 @@ public class GameServer extends Application {
 
                             // tell client the number of target cards this player got
                             writeInt(os, recv);
-                            Thread.sleep(200);
                             System.out.printf("[%s] Recv sent: %d\n", player, recv);
 
+                            // this turn is finished
                             turnFinished = true;
                         } else {
                             while (!turnFinished) {
@@ -445,9 +444,10 @@ public class GameServer extends Application {
                             }
 
                             writeInt(os, 1);
-                            Thread.sleep(100);
                         }
-                    } else {
+
+                        Thread.sleep(200);
+                    } else { // waiting for other players to be ready
                         Thread.sleep(500);
                     }
                 }

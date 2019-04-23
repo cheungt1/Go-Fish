@@ -1,10 +1,7 @@
 package game;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.Random;
+import java.util.*;
 
 /**
  * This class represents a virtual GoFish game in which contains a
@@ -57,12 +54,7 @@ public class Game implements Serializable {
      * that this array should not be changed throughout the game;
      * instead, change deckPos.
      */
-    private int[] deck = {
-            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-    };
+    private int[] deck;
 
     /**
      * Number of total matches (four-of-a-kinds) achieved by current
@@ -76,6 +68,16 @@ public class Game implements Serializable {
     private boolean started;
 
     /**
+     * A Comparator class for sorting cards in the correct manner.
+     * This compares cards from smallest(A) to greatest(K), which
+     * are represented by 1 to 13, respectively.
+     */
+    public static final Comparator<Integer> IGNORE_SUIT = (c1, c2) -> {
+        String rank1 = toRank(c1), rank2 = toRank(c2);
+        return Integer.compare(toCard(rank1), toCard(rank2));
+    };
+
+    /**
      * The default constructor of this class which instantiates all
      * instance variables.
      */
@@ -87,6 +89,11 @@ public class Game implements Serializable {
         started = false;
         matched = 0;
         lastWinner = null;
+
+        deck = new int[52];
+        for (int i = 0; i < 52; i++) {
+            deck[i] = i + 1;
+        }
     }
 
     /**
