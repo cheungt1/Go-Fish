@@ -2,6 +2,8 @@ package game;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -20,6 +22,7 @@ import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.TreeSet;
 
 import static game.Util.writeInt;
@@ -31,16 +34,6 @@ public class GameClient_Mac extends Application {
     DataInputStream is;
 
     String playerList;
-
-    public GameClient_Mac() {
-        try {
-            socket = new Socket("localhost", 8000);
-            os = new DataOutputStream(socket.getOutputStream());
-            is = new DataInputStream(socket.getInputStream());
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
 
     // Creates global stages to allow only one stage to be active at once
     Stage playingStage = new Stage();
@@ -57,15 +50,15 @@ public class GameClient_Mac extends Application {
     Label lblPlayer4Name = new Label("Player 4");
 
     // Public GameClient Components to send to server/client
-    static TextField tfUserName = new TextField();
+    TextField tfUserName = new TextField();
 
-    static RadioButton rbPlayer2 = new RadioButton("Player 2");
-    static RadioButton rbPlayer3 = new RadioButton("Player 3");
-    static RadioButton rbPlayer4 = new RadioButton("Player 4");
+    RadioButton rbPlayer2 = new RadioButton("Player 2");
+    RadioButton rbPlayer3 = new RadioButton("Player 3");
+    RadioButton rbPlayer4 = new RadioButton("Player 4");
 
-    static ToggleGroup rbPlayers = new ToggleGroup();
+    ToggleGroup rbPlayers = new ToggleGroup();
 
-    static ComboBox<String> cbCardValues = new ComboBox<>();
+    ComboBox<String> cbCardValues = new ComboBox<>();
 
     // Creates Font objects to reference throughout formatting GameClient components
     Font f16 = new Font("System", 16);
@@ -82,8 +75,18 @@ public class GameClient_Mac extends Application {
     Button btConfirmAction;
     Button btReady;
 
-    static int playerScore = 0;
-    static Label lblPlayerScore = new Label("Your Score: " + playerScore);
+    IntegerProperty playerScore = new SimpleIntegerProperty(0);
+    Label lblPlayerScore = new Label("Your Score: " + playerScore.get());
+
+    public GameClient_Mac() {
+        try {
+            socket = new Socket("localhost", 8000);
+            os = new DataOutputStream(socket.getOutputStream());
+            is = new DataInputStream(socket.getInputStream());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 
     public static void main(String[] args) {
         // server.start();
@@ -511,10 +514,24 @@ public class GameClient_Mac extends Application {
 //                        System.out.println("my turn");
                         Platform.runLater(() -> btConfirmAction.setDisable(false));
 
-                        int recv = is.readInt();
-                        System.out.println("received " + recv + " cards");
+                        String[] result = is.readUTF().split(" ");
+                        System.out.println("result = " + Arrays.toString(result));
+                        int recv = Integer.parseInt(result[0]);
+                        String recvRank = result[1];
+                        int matched = Integer.parseInt(result[2]);
 
-//                        Platform.runLater(this::updateHand_GUI);
+                        if (recv == 0) {
+                            System.out.println("go fish: " + result[1]);
+                        } else {
+                            System.out.println("received: " + recv + " " + recvRank);
+                        }
+
+                        if (matched == 1) {
+                            Platform.runLater(() -> {
+                                playerScore.set(playerScore.add(1).get());
+                                lblPlayerScore.setText("Your Score: " + playerScore.get());
+                            });
+                        }
                     } else {
                         System.out.println("not my turn");
                         Platform.runLater(() -> btConfirmAction.setDisable(true));
@@ -576,8 +593,6 @@ public class GameClient_Mac extends Application {
 
         cbCardValues.getSelectionModel().clearSelection();
         cbCardValues.getItems().setAll(cards);
-//        cbCardValues.getItems().addAll(cards);
-//        cbCardValues.setValue(cbCardValues.getItems().get(0));
         cbCardValues.getSelectionModel().selectFirst();
     }
 
@@ -653,33 +668,4 @@ public class GameClient_Mac extends Application {
         }
     }
 
-    // The following methods allows client/server interaction
-    public static String getUserName() {
-        return tfUserName.getText();
-    }
-
-    public static String getCardValue() {
-        return cbCardValues.getValue();
-    }
-
-    public static String getPlayerChoice() {
-        if (rbPlayer2.isSelected()) {
-            return rbPlayer2.getText();
-        } else if (rbPlayer3.isSelected()) {
-            return rbPlayer3.getText();
-        } else {
-            return rbPlayer4.getText();
-        }
-    }
-
-    public static void updateScore() {
-        if (playerScore < 13) {
-            playerScore++;
-            updateLabelScore();
-        }
-    }
-
-    private static void updateLabelScore() {
-        lblPlayerScore.setText("Your Score: " + playerScore);
-    }
 }

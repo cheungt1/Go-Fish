@@ -382,7 +382,7 @@ public class GameServer extends Application {
                         // get and send the name of the player of this turn
                         Player thisTurn = game.playerQueue().peekFirst();
                         String thisTurnName = thisTurn.getName();
-                        writeString(os, thisTurn.getName());
+                        writeString(os, thisTurnName);
                         Thread.sleep(100);
                         System.out.printf("[%s] Player of this turn sent\n", player);
                         Platform.runLater(() -> ta.appendText(String.format("[Server] %s's turn\n",
@@ -411,17 +411,18 @@ public class GameServer extends Application {
                             System.out.printf("[%s] target hand: %s\n", player, other.getHand());
 
                             // check if target player has target card
-                            int recv;
-                            if ((recv = other.take(targetCard)) > 0) { // target player has target card
+                            String recv;
+                            int numRecv;
+                            if ((numRecv = other.take(targetCard)) > 0) { // target player has target card
                                 // give this player those cards
-                                player.give(Game.toCard(targetCard), recv);
-                                System.out.printf("[%s] Got %d %s's!\n", player, recv, targetCard);
+                                player.give(Game.toCard(recv = targetCard), numRecv);
+                                System.out.printf("[%s] Got %d %s's!\n", player, numRecv, targetCard);
 
                                 Platform.runLater(() -> ta.appendText(String.format("[Server] %s received %d %s's\n",
-                                        thisTurnName, recv, targetCard)));
+                                        thisTurnName, numRecv, targetCard)));
                             } else { // target player does not have target card
                                 // this player go fish
-                                player.goFish();
+                                recv = Game.toRank(player.goFish());
                                 System.out.printf("[%s] Go Fish!\n", player);
 
                                 // move this player to the back of the queue
@@ -432,9 +433,20 @@ public class GameServer extends Application {
                                         thisTurnName)));
                             }
 
-                            // tell client the number of target cards this player got
-                            writeInt(os, recv);
-                            System.out.printf("[%s] Recv sent: %d\n", player, recv);
+                            // check for matches
+                            boolean matched;
+                            if (matched = player.hasCard(recv) == 4) {
+                                player.matched(); // increment player's score
+                                player.take(recv); // remove the four-of-a-kind from hand
+                            }
+
+                            // tell client result of this turn:
+                            //      # target card recv: 0-3
+                            //      rank of card recv: A-K
+                            //      whether it's a match: 0(false), 1(true)
+                            writeString(os, String.format("%d %s %d", numRecv, recv, matched ? 1 : 0));
+//                            writeInt(os, numRecv);
+                            System.out.printf("[%s] Result sent\n", player);
 
                             // this turn is finished
                             turnFinished = true;

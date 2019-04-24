@@ -119,31 +119,33 @@ public class Player implements Serializable {
      * @param card the number value of the card asked
      * @return the number of card this player has in hand; 0 if none
      */
-    public int hasCard(int card) {
+    public boolean hasCard(int card) {
+        return hand.contains(card);
+    }
+
+    public int hasCard(String rank) {
         Iterator<Integer> itr = hand.iterator();
         int count = 0;
         while (itr.hasNext()) {
-            int thisCard = itr.next();
-            if (thisCard == card)
+            if (Game.toRank(itr.next()).equals(rank))
                 count++;
         }
-
         return count;
     }
 
     /**
      * When a person got "Go-Fished", they add a card to their hand
      *
-     * @return true if the player got a card from deck; false otherwise
+     * @return the card this player got from deck; 0 if none
      */
-    public boolean goFish() {
-        if (game.cardsLeft() != 0) {
-            this.hand.addLast(game.draw());
+    public int goFish() {
+        int draw = game.draw();
+        if (draw != 0) {
+            hand.addLast(draw);
             updateHand();
-            return true;
         }
 
-        return false;
+        return draw;
     }
 
     /**

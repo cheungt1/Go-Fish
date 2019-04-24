@@ -38,11 +38,6 @@ public class Game implements Serializable {
     private int numPlayers;
 
     /**
-     * Whether or not this game has started.
-     */
-    private boolean isEnded;
-
-    /**
      * An index pointer to the virtual deck array, usually used to
      * incrementally traverse through the deck array to create a
      * "drawing" effect.
