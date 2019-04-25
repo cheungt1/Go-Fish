@@ -49,6 +49,11 @@ public class GameClient_Mac extends Application {
     Label lblPlayer3Name = new Label("Player 3");
     Label lblPlayer4Name = new Label("Player 4");
 
+    Label lblLastAction = new Label();
+    Label lblAction = new Label();
+
+    VBox actionsBox = new VBox(5);
+
     // Public GameClient Components to send to server/client
     TextField tfUserName = new TextField();
 
@@ -105,7 +110,6 @@ public class GameClient_Mac extends Application {
             // Label initialization
             Label lblPlayerSection = new Label("Available Players");
             Label lblCardSection = new Label("Select a Card Value");
-//            Label lblRecentAction = new Label();
 
             // Button initialization
             btConfirmAction = new Button("Ask for that card");
@@ -121,6 +125,10 @@ public class GameClient_Mac extends Application {
             rbPlayer4.setToggleGroup(rbPlayers);
 
             rbPlayer2.setSelected(true);
+
+            rbPlayer2.setDisable(true);
+            rbPlayer3.setDisable(true);
+            rbPlayer4.setDisable(true);
 
             // Sets up ComboBox's values
 
@@ -284,20 +292,24 @@ public class GameClient_Mac extends Application {
             btConfirmAction.setFont(f18);
             btQuit.setFont(f18);
             btReady.setFont(f18);
-//            lblRecentAction.setFont(f16);
+            lblLastAction.setFont(f16);
+            lblLastAction.setTextFill(Color.GRAY);
+            lblAction.setFont(f16);
             lblUserName.setFont(f16);
             lblPlayer2Name.setFont(f16);
             lblPlayer3Name.setFont(f16);
             lblPlayer4Name.setFont(f16);
+
+            actionsBox.getChildren().addAll(lblLastAction, lblAction);
 
             // Adding all components into panes
             pInteraction.getChildren().addAll(lblPlayerScore, lblPlayerSection, lblCardSection, imgCard, rbPlayer2,
                     rbPlayer3, rbPlayer4, cbCardValues, btConfirmAction, btQuit);
             pVisual.getChildren().addAll(background, imgCardBack1, imgCardBack2, imgCardBack3, btReady, lblUserName,
                     lblPlayer2Name, lblPlayer3Name, lblPlayer4Name);
-//            pTextLog.getChildren().addAll(lblRecentAction);
+//            pTextLog.getChildren().addAll(lblAction);
 
-//            overallPane.setTop(pTextLog);
+            overallPane.setTop(actionsBox);
             overallPane.setCenter(pVisual);
             overallPane.setRight(pInteraction);
 
@@ -341,13 +353,16 @@ public class GameClient_Mac extends Application {
             lblPlayer2Name.setOnMousePressed(e -> lblPlayer2Name.setRotate(0));
             lblPlayer2Name.setOnMouseReleased(e -> lblPlayer2Name.setRotate(90));
 
-//            btReady.setDisable(true);
+            playerScore.addListener((observable, oldValue, newValue) ->
+                    lblPlayerScore.setText("Your Score: " + newValue));
 
             btReady.setOnAction(event -> {
                 writeInt(os, 1);
 
                 btReady.setVisible(false);
                 btReady.setDisable(true);
+
+                updateAction("You're ready! Waiting for other players to get ready..");
             });
 
             // pVisual background set-up
@@ -362,9 +377,6 @@ public class GameClient_Mac extends Application {
                     .setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
             lblPlayer4Name
                     .setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
-
-            // pTextLog alignment
-//            translate(-465, 0, lblRecentAction);
 
             // Create Scene and set-up stage
             Scene scene = new Scene(overallPane, 1024, 532);
@@ -424,7 +436,11 @@ public class GameClient_Mac extends Application {
                     if (!tfUserName.getText().equals("")) {
                         // Sets the player name to what was entered
                         writeString(os, tfUserName.getText());
-                        updateUserName(tfUserName.getText());
+
+                        Platform.runLater(() -> {
+                            updateUserName(tfUserName.getText());
+                            updateAction("Welcome to Go Fish, " + userName + "! Click Ready to start.");
+                        });
 
                         try {
                             is.readInt();
@@ -439,8 +455,10 @@ public class GameClient_Mac extends Application {
                         updateInfo();
                     } else {
                         // Changes label to warn user of entering a name
-                        lblMessage1.setVisible(false);
-                        lblMessage2.setText("You MUST enter a name!");
+                        Platform.runLater(() -> {
+                            lblMessage1.setVisible(false);
+                            lblMessage2.setText("You MUST enter a name!");
+                        });
                     }
                 });
             } catch (Exception e) {
@@ -467,25 +485,29 @@ public class GameClient_Mac extends Application {
                         System.out.println("msg = " + msg);
                         if (msg.equals("start")) {
                             gameStarted = true;
-                            System.out.println("game started");
 
                             Platform.runLater(() -> {
+                                updateAction("Game has started!");
                                 updateOtherHands();
-                                updateHand();
                             });
+
+                            updateHand();
                         } else {
-                            System.out.println("game has not started");
+//                            System.out.println("game has not started");
                             playerList = msg;
                             System.out.println("players = " + playerList);
                             String[] othersName = playerList.split(" ");
 
-                            System.out.println("# players = " + othersName.length);
                             if (playerList.equals(""))
                                 btReady.setDisable(true);
-                            else
+                            else {
                                 btReady.setDisable(false);
+                                Platform.runLater(() -> {
+                                    updateAction("A new player has joined!");
+                                    updateGameName(othersName);
+                                });
+                            }
 
-                            Platform.runLater(() -> updateGameName(othersName));
                             Thread.sleep(200);
                         }
                     } else {
@@ -502,7 +524,7 @@ public class GameClient_Mac extends Application {
         new Thread(() -> {
             try {
                 while (gameStarted) {
-                    System.out.println("new turn");
+//                    System.out.println("new turn");
                     Platform.runLater(this::updateHand_GUI);
                     Thread.sleep(200);
 
@@ -511,30 +533,37 @@ public class GameClient_Mac extends Application {
                     System.out.println("my name = " + userName);
 
                     if (thisTurn.equals(userName)) {
-//                        System.out.println("my turn");
-                        Platform.runLater(() -> btConfirmAction.setDisable(false));
+                        Platform.runLater(() -> {
+                            updateAction("It's your turn!");
+                            btConfirmAction.setDisable(false);
+                        });
 
                         String[] result = is.readUTF().split(" ");
                         System.out.println("result = " + Arrays.toString(result));
-                        int recv = Integer.parseInt(result[0]);
-                        String recvRank = result[1];
+                        int numRecv = Integer.parseInt(result[0]);
+                        String recv = result[1];
                         int matched = Integer.parseInt(result[2]);
 
-                        if (recv == 0) {
-                            System.out.println("go fish: " + result[1]);
+                        if (numRecv == 0) {
+//                            System.out.println("go fish: " + result[1]);
+                            Platform.runLater(() -> updateAction("Go Fish! You got a " + result[1] + "."));
                         } else {
-                            System.out.println("received: " + recv + " " + recvRank);
+//                            System.out.println("received: " + recv + " " + recvRank);
+                            Platform.runLater(() -> updateAction(String.format("You got %s %s's from %s!",
+                                    numRecv, recv, ((RadioButton) rbPlayers.getSelectedToggle()).getText())));
                         }
 
                         if (matched == 1) {
                             Platform.runLater(() -> {
                                 playerScore.set(playerScore.add(1).get());
-                                lblPlayerScore.setText("Your Score: " + playerScore.get());
+                                updateAction(lblAction.getText() + " That made a match!");
                             });
                         }
                     } else {
-                        System.out.println("not my turn");
-                        Platform.runLater(() -> btConfirmAction.setDisable(true));
+                        Platform.runLater(() -> {
+                            updateAction("Waiting for your turn...");
+                            btConfirmAction.setDisable(true);
+                        });
                         System.out.println("int = " + is.readInt()); // wait for signal from server
                     }
 
@@ -558,7 +587,8 @@ public class GameClient_Mac extends Application {
         String hand = "";
 
         try {
-            hand = is.readUTF();
+            hand = is.readUTF(); // read hand from server
+//            writeInt(os, 1); // signal the server
             System.out.println("my hand = " + hand);
         } catch (Exception e) {
             e.printStackTrace();
@@ -665,6 +695,13 @@ public class GameClient_Mac extends Application {
             lblPlayer4Name.setText(playerNames[2]);
             rbPlayer4.setText(playerNames[2]);
             rbPlayer4.setDisable(false);
+        }
+    }
+
+    public void updateAction(String msg) {
+        if (!msg.equals(lblAction.getText())) {
+            lblLastAction.setText(lblAction.getText());
+            lblAction.setText(msg);
         }
     }
 

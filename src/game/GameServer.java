@@ -109,11 +109,13 @@ public class GameServer extends Application {
 
                 // close all i/o streams of current players
                 for (PlayerHandler handler : players) {
-                    try {
-                        handler.is.close();
-                        handler.os.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    if (handler != null) {
+                        try {
+                            handler.is.close();
+                            handler.os.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
 
@@ -358,26 +360,34 @@ public class GameServer extends Application {
             try {
                 while (!Thread.interrupted()) {
                     if (!game.isStarted() && !ready) { // waiting for this player to be ready
-                        System.out.printf("[%s] Game has not started: %d/%d\n", player, numReady, numPlayer);
+//                        System.out.printf("[%s] Game has not started: %d/%d\n", player, numReady, numPlayer);
                         is.readInt();
                         ready = true;
-                        numReady++;
+
+                        synchronized (this) {
+                            numReady++;
+                        }
+
 //                        System.out.printf("[%s] is ready: %d/%d\n", player, numReady, numPlayer);
                         Platform.runLater(() -> ta.appendText(String.format("[Server] %s is ready: %d/%d\n",
                                 player, numReady, numPlayer)));
 
                         if (numReady == numPlayer) {
                             writeToAll("start");
-                            game.start();
                             Thread.sleep(100);
-                            System.out.printf("[%s] Wrote start to all players\n", player);
+                            game.start();
+//                            System.out.printf("[%s] Wrote start to all players\n", player);
                             Platform.runLater(() -> ta.appendText("[Server] Game has started\n"));
                         }
                     } else if (game.isStarted()) { // game is started
                         // send this player's hand
                         writeString(os, formatHand());
-                        Thread.sleep(100);
+                        Thread.sleep(200);
                         System.out.printf("[%s] Hand sent\n", player);
+
+                        // get signal from client
+//                        is.readInt();
+//                        System.out.printf("[Server] Ready = %d", numReady);
 
                         // get and send the name of the player of this turn
                         Player thisTurn = game.playerQueue().peekFirst();
@@ -445,7 +455,6 @@ public class GameServer extends Application {
                             //      rank of card recv: A-K
                             //      whether it's a match: 0(false), 1(true)
                             writeString(os, String.format("%d %s %d", numRecv, recv, matched ? 1 : 0));
-//                            writeInt(os, numRecv);
                             System.out.printf("[%s] Result sent\n", player);
 
                             // this turn is finished
